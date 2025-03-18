@@ -15,83 +15,93 @@ type Answer struct {
 	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
-// GetAnswerByQuestionID retrieves an answer for a specific question
-func GetAnswerByQuestionID(questionID int64) (*Answer, error) {
-	var answer Answer
-
-	err := database.DB.QueryRow(`
-		SELECT id, question_id, content, created_at, updated_at 
-		FROM answers 
-		WHERE question_id = ?`, questionID).Scan(
-		&answer.ID, &answer.QuestionID, &answer.Content, &answer.CreatedAt, &answer.UpdatedAt)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &answer, nil
+// AnswerHistory combines the answer with the date it was created
+type AnswerHistory struct {
+	ID         int64     `json:"id"`
+	QuestionID int64     `json:"questionId"`
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
-// SaveAnswer creates or updates an answer
-func SaveAnswer(questionID int64, content string) (*Answer, error) {
-	// Check if an answer already exists for this question
-	var count int
-	err := database.DB.QueryRow(`
-		SELECT COUNT(*) 
+// GetAnswerHistoryByQuestionID retrieves all answers for a specific question
+func GetAnswerHistoryByQuestionID(questionID int64) ([]AnswerHistory, error) {
+	rows, err := database.DB.Query(`
+		SELECT id, question_id, content, created_at, updated_at 
 		FROM answers 
-		WHERE question_id = ?`, questionID).Scan(&count)
+		WHERE question_id = ? 
+		ORDER BY created_at DESC`, questionID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var answers []AnswerHistory
+	for rows.Next() {
+		var a AnswerHistory
+
+		err := rows.Scan(&a.ID, &a.QuestionID, &a.Content, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		answers = append(answers, a)
+	}
+
+	return answers, nil
+}
+
+// CreateNewAnswer creates a new answer entry
+func CreateNewAnswer(questionID int64, content string) (*Answer, error) {
+	now := time.Now()
+
+	// Create new answer
+	res, err := database.DB.Exec(`
+		INSERT INTO answers (question_id, content, created_at, updated_at) 
+		VALUES (?, ?, ?, ?)`, questionID, content, now, now)
 
 	if err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
-	var result Answer
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
 
-	if count > 0 {
-		// Update existing answer
-		_, err = database.DB.Exec(`
-			UPDATE answers 
-			SET content = ?, updated_at = ? 
-			WHERE question_id = ?`, content, now, questionID)
-
-		if err != nil {
-			return nil, err
-		}
-
-		err = database.DB.QueryRow(`
-			SELECT id, question_id, content, created_at, updated_at 
-			FROM answers 
-			WHERE question_id = ?`, questionID).Scan(
-			&result.ID, &result.QuestionID, &result.Content, &result.CreatedAt, &result.UpdatedAt)
-
-		if err != nil {
-			return nil, err
-		}
-
-	} else {
-		// Create new answer
-		res, err := database.DB.Exec(`
-			INSERT INTO answers (question_id, content) 
-			VALUES (?, ?)`, questionID, content)
-
-		if err != nil {
-			return nil, err
-		}
-
-		id, err := res.LastInsertId()
-		if err != nil {
-			return nil, err
-		}
-
-		result = Answer{
-			ID:         id,
-			QuestionID: questionID,
-			Content:    content,
-			CreatedAt:  now,
-			UpdatedAt:  now,
-		}
+	result := Answer{
+		ID:         id,
+		QuestionID: questionID,
+		Content:    content,
+		CreatedAt:  now,
+		UpdatedAt:  now,
 	}
 
 	return &result, nil
+}
+
+// GetAllAnswers retrieves all answers from the database
+func GetAllAnswers() ([]Answer, error) {
+	rows, err := database.DB.Query(`
+		SELECT id, question_id, content, created_at, updated_at 
+		FROM answers 
+		ORDER BY created_at DESC`)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var answers []Answer
+	for rows.Next() {
+		var a Answer
+		err := rows.Scan(&a.ID, &a.QuestionID, &a.Content, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		answers = append(answers, a)
+	}
+
+	return answers, nil
 }

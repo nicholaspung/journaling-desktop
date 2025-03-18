@@ -4,16 +4,38 @@ import {models} from '../models';
 
 export function CheckTodayAffirmation(arg1:number):Promise<boolean>;
 
+export function CreateNewAnswer(arg1:number,arg2:string):Promise<models.Answer>;
+
+export function DeleteAffirmation(arg1:number):Promise<void>;
+
+export function DeleteAffirmationLog(arg1:number):Promise<void>;
+
+export function DeleteAnswer(arg1:number):Promise<void>;
+
+export function DeleteQuestion(arg1:number):Promise<void>;
+
 export function GetActiveAffirmation():Promise<models.Affirmation>;
 
 export function GetAffirmationStreak():Promise<number>;
 
-export function GetAnswer(arg1:number):Promise<models.Answer>;
+export function GetAllAffirmationLogs():Promise<Array<models.AffirmationLog>>;
 
-export function GetDailyQuestion():Promise<models.Question>;
+export function GetAllAffirmations():Promise<Array<models.Affirmation>>;
+
+export function GetAllAnswers():Promise<Array<models.Answer>>;
+
+export function GetAllQuestions():Promise<Array<models.Question>>;
+
+export function GetAnswerHistoryByQuestionID(arg1:number):Promise<Array<models.AnswerHistory>>;
+
+export function GetRandomQuestion():Promise<models.Question>;
 
 export function LogAffirmation(arg1:number):Promise<void>;
 
 export function SaveAffirmation(arg1:string):Promise<models.Affirmation>;
 
-export function SaveAnswer(arg1:number,arg2:string):Promise<models.Answer>;
+export function UpdateAffirmation(arg1:number,arg2:string):Promise<void>;
+
+export function UpdateAnswer(arg1:number,arg2:string):Promise<void>;
+
+export function UpdateQuestion(arg1:number,arg2:string):Promise<void>;

@@ -58,21 +58,6 @@ func (a *App) Shutdown(ctx context.Context) {
 	database.Close()
 }
 
-// GetDailyQuestion returns the question for today
-func (a *App) GetDailyQuestion() (*models.Question, error) {
-	return models.GetDailyQuestion()
-}
-
-// SaveAnswer creates or updates an answer for a question
-func (a *App) SaveAnswer(questionID int64, content string) (*models.Answer, error) {
-	return models.SaveAnswer(questionID, content)
-}
-
-// GetAnswer gets the answer for a specific question
-func (a *App) GetAnswer(questionID int64) (*models.Answer, error) {
-	return models.GetAnswerByQuestionID(questionID)
-}
-
 // GetActiveAffirmation gets the current active affirmation
 func (a *App) GetActiveAffirmation() (*models.Affirmation, error) {
 	return models.GetActiveAffirmation()
@@ -96,4 +81,71 @@ func (a *App) CheckTodayAffirmation(affirmationID int64) (bool, error) {
 // GetAffirmationStreak gets the current streak of consecutive days
 func (a *App) GetAffirmationStreak() (int, error) {
 	return models.GetAffirmationStreak()
+}
+
+// GetAllQuestions retrieves all questions from the database
+func (a *App) GetAllQuestions() ([]models.Question, error) {
+	return models.GetAllQuestions()
+}
+
+// GetAllAnswers retrieves all answers from the database
+func (a *App) GetAllAnswers() ([]models.Answer, error) {
+	return models.GetAllAnswers()
+}
+
+// GetAllAffirmations retrieves all affirmations from the database
+func (a *App) GetAllAffirmations() ([]models.Affirmation, error) {
+	return models.GetAllAffirmations()
+}
+
+// GetAllAffirmationLogs retrieves all affirmation logs from the database
+func (a *App) GetAllAffirmationLogs() ([]models.AffirmationLog, error) {
+	return models.GetAllAffirmationLogs()
+}
+
+// GetRandomQuestion returns a random question
+func (a *App) GetRandomQuestion() (*models.Question, error) {
+	return models.GetRandomQuestion()
+}
+
+// CreateNewAnswer creates a new answer entry
+func (a *App) CreateNewAnswer(questionID int64, content string) (*models.Answer, error) {
+	return models.CreateNewAnswer(questionID, content)
+}
+
+// GetAnswerHistoryByQuestionID gets all answers for a specific question
+func (a *App) GetAnswerHistoryByQuestionID(questionID int64) ([]models.AnswerHistory, error) {
+	return models.GetAnswerHistoryByQuestionID(questionID)
+}
+
+// Question CRUD operations
+func (a *App) UpdateQuestion(id int64, content string) error {
+	return models.UpdateQuestion(id, content)
+}
+
+func (a *App) DeleteQuestion(id int64) error {
+	return models.DeleteQuestion(id)
+}
+
+// Answer CRUD operations
+func (a *App) UpdateAnswer(id int64, content string) error {
+	return models.UpdateAnswer(id, content)
+}
+
+func (a *App) DeleteAnswer(id int64) error {
+	return models.DeleteAnswer(id)
+}
+
+// Affirmation CRUD operations
+func (a *App) UpdateAffirmation(id int64, content string) error {
+	return models.UpdateAffirmation(id, content)
+}
+
+func (a *App) DeleteAffirmation(id int64) error {
+	return models.DeleteAffirmation(id)
+}
+
+// Affirmation Log CRUD operations
+func (a *App) DeleteAffirmationLog(id int64) error {
+	return models.DeleteAffirmationLog(id)
 }

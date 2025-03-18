@@ -6,6 +6,26 @@ export function CheckTodayAffirmation(arg1) {
   return window['go']['backend']['App']['CheckTodayAffirmation'](arg1);
 }
 
+export function CreateNewAnswer(arg1, arg2) {
+  return window['go']['backend']['App']['CreateNewAnswer'](arg1, arg2);
+}
+
+export function DeleteAffirmation(arg1) {
+  return window['go']['backend']['App']['DeleteAffirmation'](arg1);
+}
+
+export function DeleteAffirmationLog(arg1) {
+  return window['go']['backend']['App']['DeleteAffirmationLog'](arg1);
+}
+
+export function DeleteAnswer(arg1) {
+  return window['go']['backend']['App']['DeleteAnswer'](arg1);
+}
+
+export function DeleteQuestion(arg1) {
+  return window['go']['backend']['App']['DeleteQuestion'](arg1);
+}
+
 export function GetActiveAffirmation() {
   return window['go']['backend']['App']['GetActiveAffirmation']();
 }
@@ -14,12 +34,28 @@ export function GetAffirmationStreak() {
   return window['go']['backend']['App']['GetAffirmationStreak']();
 }
 
-export function GetAnswer(arg1) {
-  return window['go']['backend']['App']['GetAnswer'](arg1);
+export function GetAllAffirmationLogs() {
+  return window['go']['backend']['App']['GetAllAffirmationLogs']();
 }
 
-export function GetDailyQuestion() {
-  return window['go']['backend']['App']['GetDailyQuestion']();
+export function GetAllAffirmations() {
+  return window['go']['backend']['App']['GetAllAffirmations']();
+}
+
+export function GetAllAnswers() {
+  return window['go']['backend']['App']['GetAllAnswers']();
+}
+
+export function GetAllQuestions() {
+  return window['go']['backend']['App']['GetAllQuestions']();
+}
+
+export function GetAnswerHistoryByQuestionID(arg1) {
+  return window['go']['backend']['App']['GetAnswerHistoryByQuestionID'](arg1);
+}
+
+export function GetRandomQuestion() {
+  return window['go']['backend']['App']['GetRandomQuestion']();
 }
 
 export function LogAffirmation(arg1) {
@@ -30,6 +66,14 @@ export function SaveAffirmation(arg1) {
   return window['go']['backend']['App']['SaveAffirmation'](arg1);
 }
 
-export function SaveAnswer(arg1, arg2) {
-  return window['go']['backend']['App']['SaveAnswer'](arg1, arg2);
+export function UpdateAffirmation(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateAffirmation'](arg1, arg2);
+}
+
+export function UpdateAnswer(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateAnswer'](arg1, arg2);
+}
+
+export function UpdateQuestion(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateQuestion'](arg1, arg2);
 }

@@ -61,8 +61,8 @@ func SaveAffirmation(content string) (*Affirmation, error) {
 // LogAffirmationCompletion records that the user completed their affirmation
 func LogAffirmationCompletion(affirmationID int64) error {
 	_, err := database.DB.Exec(`
-		INSERT INTO affirmation_logs (affirmation_id) 
-		VALUES (?)`, affirmationID)
+		INSERT INTO affirmation_logs (affirmation_id, completed_at) 
+		VALUES (?, datetime('now', 'localtime'))`, affirmationID)
 
 	return err
 }
@@ -70,13 +70,14 @@ func LogAffirmationCompletion(affirmationID int64) error {
 // CheckTodayAffirmation checks if the affirmation was completed today
 func CheckTodayAffirmation(affirmationID int64) (bool, error) {
 	var count int
+
+	// Use the local timezone date for today's comparison
 	today := time.Now().Format("2006-01-02")
 
 	err := database.DB.QueryRow(`
 		SELECT COUNT(*) 
 		FROM affirmation_logs 
-		WHERE affirmation_id = ? 
-		AND date(completed_at) = ?`, affirmationID, today).Scan(&count)
+		WHERE date(completed_at, 'localtime') = ?`, today).Scan(&count)
 
 	if err != nil {
 		return false, err
@@ -92,7 +93,7 @@ func GetAffirmationStreak() (int, error) {
 	var streak int
 
 	rows, err := database.DB.Query(`
-		SELECT date(completed_at) as log_date
+		SELECT date(completed_at, 'localtime') as log_date
 		FROM affirmation_logs
 		GROUP BY log_date
 		ORDER BY log_date DESC`)
@@ -139,4 +140,61 @@ func GetAffirmationStreak() (int, error) {
 	}
 
 	return streak, nil
+}
+
+// GetAllAffirmations retrieves all affirmations from the database
+func GetAllAffirmations() ([]Affirmation, error) {
+	rows, err := database.DB.Query(`
+		SELECT id, content, created_at, updated_at 
+		FROM affirmations 
+		ORDER BY created_at DESC`)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var affirmations []Affirmation
+	for rows.Next() {
+		var a Affirmation
+		err := rows.Scan(&a.ID, &a.Content, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		affirmations = append(affirmations, a)
+	}
+
+	return affirmations, nil
+}
+
+// Add a new type for AffirmationLog
+type AffirmationLog struct {
+	ID            int64     `json:"id"`
+	AffirmationID int64     `json:"affirmationId"`
+	CompletedAt   time.Time `json:"completedAt"`
+}
+
+// GetAllAffirmationLogs retrieves all affirmation logs from the database
+func GetAllAffirmationLogs() ([]AffirmationLog, error) {
+	rows, err := database.DB.Query(`
+		SELECT id, affirmation_id, completed_at 
+		FROM affirmation_logs 
+		ORDER BY completed_at DESC`)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []AffirmationLog
+	for rows.Next() {
+		var log AffirmationLog
+		err := rows.Scan(&log.ID, &log.AffirmationID, &log.CompletedAt)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, log)
+	}
+
+	return logs, nil
 }
