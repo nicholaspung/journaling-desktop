@@ -1,4 +1,3 @@
-// frontend/components/DeleteDialog.tsx
 import React, { useState } from "react";
 import {
   AlertDialog,

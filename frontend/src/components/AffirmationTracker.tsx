@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AffirmationTracker() {
   const [affirmation, setAffirmation] = useState<Affirmation | null>(null);
@@ -64,8 +65,12 @@ export default function AffirmationTracker() {
       setAffirmation(savedAffirmation);
       setCompletedToday(false);
       setIsEditing(false);
+      toast.success(`Updated successfully. The affirmation has been updated.`);
     } catch (error) {
       console.error("Error saving affirmation:", error);
+      toast.error(
+        `Update failed. Failed to update the affirmation. Please try again.`
+      );
     } finally {
       setIsSaving(false);
     }
@@ -81,8 +86,14 @@ export default function AffirmationTracker() {
       // Update streak
       const currentStreak = await GetAffirmationStreak();
       setStreak(currentStreak);
+      toast.success(
+        `Affirmation completed successfully. Streak has increased.`
+      );
     } catch (error) {
       console.error("Error logging affirmation:", error);
+      toast.error(
+        `Update failed. Failed to update the streak. Please try again.`
+      );
     }
   }
 

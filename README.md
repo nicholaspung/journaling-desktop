@@ -1,19 +1,18 @@
-# README
+# Project management
 
-## About
+## TODOS
 
-This is the official Wails React-TS template.
+- Change questions so that if I answer a question, it shows that question and answer, not another random question
+- Disable "New question" button if I already answered for the day
+- Add a way to add more questions
+- Start changing the structure of the project folder to be a little more maintainable
+- Add different routes to the application and place the components there
+- Figure out if Claude can help me change the complete styling of the shadcn components to look a little nicer
+- See if there's a way to generate a "SDK" for the Wails bindings after they are created
+- See if there's a way to generate types from the Go backend models in Typescript
+- See if there's a way to choose the database it loads
+- For questions, if there's a history, add a button that allows for comparison view between today's question, and the selected question
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+## IN PROGRESS
 
-## Live Development
-
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
-
-## Building
-
-To build a redistributable, production mode package, use `wails build`.
+## DONE

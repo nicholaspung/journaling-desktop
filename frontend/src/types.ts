@@ -1,3 +1,5 @@
+import { LucideIcon } from "lucide-react";
+
 // src/types.ts
 export interface Question {
   id: number;
@@ -34,3 +36,46 @@ export interface JoinedAnswer extends Answer {
 export interface JoinedAffirmationLog extends AffirmationLog {
   affirmationContent?: string;
 }
+
+// Types for column configuration
+export type ColumnConfig<T> = {
+  key: keyof T | string;
+  header: string;
+  width?: string;
+  renderCell?: (row: T) => React.ReactNode;
+  truncate?: boolean;
+  maxWidth?: string;
+  // New properties for enhanced features
+  sortable?: boolean; // If false, column can't be sorted (default: true)
+  filterable?: boolean; // If false, column won't show filter input (default: true)
+  hideInExport?: boolean; // If true, column won't be included in CSV export
+  renderForExport?: (row: T) => string | number; // Custom formatting for export
+  skipRenderInExport?: boolean; // If true, renderCell won't be used for export
+};
+
+// Types for tab configuration
+export type TabConfig<T> = {
+  id: string;
+  label: string;
+  icon?: LucideIcon;
+  data: T[];
+  columns: ColumnConfig<T>[];
+  idField: keyof T;
+  contentField?: keyof T;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  emptyMessage?: string;
+  onUpdate?: (id: any, content: string) => Promise<void>;
+  onDelete?: (id: any) => Promise<void>;
+  additionalUpdates?: (id: any, content: string) => void;
+  // New properties for enhanced features
+  enableSorting?: boolean; // Enable/disable sorting for this tab
+  enableFiltering?: boolean; // Enable/disable filtering for this tab
+  enablePagination?: boolean; // Enable/disable pagination for this tab
+  enableExport?: boolean; // Enable/disable export for this tab
+  defaultSortColumn?: string; // Default column to sort by
+  defaultSortDirection?: "asc" | "desc"; // Default sort direction
+  defaultPageSize?: number; // Default page size
+  pageSizeOptions?: number[]; // Available page size options
+  exportFilename?: string; // Filename for export (without extension)
+};

@@ -54,8 +54,28 @@ export function GetAnswerHistoryByQuestionID(arg1) {
   return window['go']['backend']['App']['GetAnswerHistoryByQuestionID'](arg1);
 }
 
+export function GetAnswersByDate(arg1) {
+  return window['go']['backend']['App']['GetAnswersByDate'](arg1);
+}
+
+export function GetQuestionById(arg1) {
+  return window['go']['backend']['App']['GetQuestionById'](arg1);
+}
+
 export function GetRandomQuestion() {
   return window['go']['backend']['App']['GetRandomQuestion']();
+}
+
+export function GetTodayDateStr() {
+  return window['go']['backend']['App']['GetTodayDateStr']();
+}
+
+export function GetTodaysAnswer() {
+  return window['go']['backend']['App']['GetTodaysAnswer']();
+}
+
+export function GetTodaysAnsweredQuestion() {
+  return window['go']['backend']['App']['GetTodaysAnsweredQuestion']();
 }
 
 export function LogAffirmation(arg1) {

@@ -1,5 +1,4 @@
-// frontend/components/EditDialog.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,15 +9,15 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 
 interface EditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   content: string;
-  onSave: (content: string) => Promise<void>;
-  type: "question" | "answer" | "affirmation";
+  onSave: (content: string) => Promise<void> | void;
+  type?: string; // Made optional since it's now more generic
+  placeholder?: string; // Added for more flexibility
 }
 
 const EditDialog: React.FC<EditDialogProps> = ({
@@ -27,11 +26,16 @@ const EditDialog: React.FC<EditDialogProps> = ({
   title,
   content,
   onSave,
-  type,
+  type = "item", // Default value for generic use
+  placeholder,
 }) => {
   const [value, setValue] = useState(content);
   const [saving, setSaving] = useState(false);
-  const [textareaHeight, setTextareaHeight] = useState(150);
+
+  // Reset value when content changes (useful when editing different items)
+  useEffect(() => {
+    setValue(content);
+  }, [content]);
 
   const handleSave = async () => {
     if (!value.trim()) return;
@@ -48,10 +52,19 @@ const EditDialog: React.FC<EditDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        // If closing, reset to original content
+        if (!isOpen) {
+          setValue(content);
+        }
+        onOpenChange(isOpen);
+      }}
+    >
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Edit {title}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             Make changes to the content below.
           </DialogDescription>
@@ -61,24 +74,9 @@ const EditDialog: React.FC<EditDialogProps> = ({
           <Textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={`Enter ${type} content...`}
+            placeholder={placeholder || `Enter ${type} content...`}
             className="min-h-[60px]"
-            style={{ height: `${textareaHeight}px` }}
           />
-
-          <div className="py-2">
-            <div className="text-sm text-muted-foreground mb-2">
-              Adjust textarea height
-            </div>
-            <Slider
-              defaultValue={[textareaHeight]}
-              min={100}
-              max={400}
-              step={10}
-              onValueChange={(vals) => setTextareaHeight(vals[0])}
-              className="w-full"
-            />
-          </div>
         </div>
 
         <DialogFooter>

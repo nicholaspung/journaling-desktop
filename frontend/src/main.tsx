@@ -1,11 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
+import { Toaster } from "./components/ui/sonner";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -22,7 +23,10 @@ if (rootElement && !rootElement?.innerHTML) {
   createRoot(rootElement).render(
     <StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
+        <div className="min-h-screen bg-background text-foreground">
+          <RouterProvider router={router} />
+        </div>
+        <Toaster richColors />
       </ThemeProvider>
     </StrictMode>
   );
