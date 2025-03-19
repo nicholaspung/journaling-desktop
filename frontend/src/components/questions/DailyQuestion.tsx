@@ -13,12 +13,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, CalendarDays, Edit2 } from "lucide-react";
+import { CalendarDays, Edit2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import WysiwygMarkdownEditor from "./wysiwyg-markdown-editor";
 import { toast } from "sonner";
@@ -215,84 +214,59 @@ export default function DailyQuestion() {
   };
 
   return (
-    <Card className="w-full mx-auto">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Journal Question</CardTitle>
-            <CardDescription>
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </CardDescription>
+    <div className="relative pb-16">
+      <Card className="w-full mx-auto">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Journal Question</CardTitle>
+              <CardDescription>
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </CardDescription>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={checkTodaysAnswer}
-              className="flex items-center gap-2"
-              title="Reload today's question"
-            >
-              <RefreshCw size={16} />
-              Reload
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchRandomQuestion}
-              disabled={answeredToday}
-              className="flex items-center gap-2"
-              title={
-                answeredToday
-                  ? "You've already answered a question today"
-                  : "Get a new random question"
-              }
-            >
-              <RefreshCw size={16} />
-              New Question
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      {isLoading ? (
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading question...</div>
-        </CardContent>
-      ) : (
-        <Tabs defaultValue="write" className="w-full">
-          <CardContent>
-            <div className="text-xl font-medium mb-4">{question?.content}</div>
-            <p className="font-light mb-4">
-              Take a moment to reflect on this question and write your thoughts
-              below.
-            </p>
+        {isLoading ? (
+          <CardContent className="flex items-center justify-center h-64">
+            <div className="text-muted-foreground">Loading question...</div>
+          </CardContent>
+        ) : (
+          <Tabs defaultValue="write" className="w-full">
+            <CardContent>
+              <div className="text-xl font-medium mb-4">
+                {question?.content}
+              </div>
+              <p className="font-light mb-4">
+                Take a moment to reflect on this question and write your
+                thoughts below.
+              </p>
 
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="write">
-                {answeredToday ? "Today's Answer" : "Write"}
-              </TabsTrigger>
-              <TabsTrigger value="history">
-                History{" "}
-                {answerHistory.length > 0 && `(${answerHistory.length})`}
-              </TabsTrigger>
-            </TabsList>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="write">
+                  {answeredToday ? "Today's Answer" : "Write"}
+                </TabsTrigger>
+                <TabsTrigger value="history">
+                  History{" "}
+                  {answerHistory.length > 0 && `(${answerHistory.length})`}
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="write">
-              <div className="mt-2">
-                {isEditing ? (
-                  <WysiwygMarkdownEditor
-                    value={content}
-                    onChange={setContent}
-                    placeholder="Write your answer here using markdown..."
-                  />
-                ) : (
-                  <div className="relative prose dark:prose-invert max-w-none border rounded-md p-4">
-                    {answeredToday && (
+              <TabsContent value="write">
+                <div className="mt-2">
+                  {isEditing ? (
+                    <WysiwygMarkdownEditor
+                      value={content}
+                      onChange={setContent}
+                      placeholder="Write your answer here using markdown..."
+                    />
+                  ) : (
+                    <div className="relative prose dark:prose-invert max-w-none border rounded-md p-4">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -301,81 +275,80 @@ export default function DailyQuestion() {
                       >
                         <Edit2 size={16} />
                       </Button>
-                    )}
-                    {content ? (
-                      <ReactMarkdown>{content}</ReactMarkdown>
-                    ) : (
-                      <p className="text-muted-foreground italic">
-                        {answeredToday
-                          ? "Click Edit to update your answer"
-                          : "No answer yet. Start writing to add one."}
-                      </p>
-                    )}
+                      {content ? (
+                        <ReactMarkdown>{content}</ReactMarkdown>
+                      ) : (
+                        <p className="text-muted-foreground italic">
+                          {answeredToday
+                            ? "Click Edit to update your answer"
+                            : "No answer yet. Start writing to add one."}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="history">
+                {isLoadingHistory ? (
+                  <div className="text-center py-4">Loading history...</div>
+                ) : answerHistory.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    You haven't answered this question before.
+                  </div>
+                ) : (
+                  <div className="space-y-6 mt-2">
+                    {answerHistory.map((historyItem) => (
+                      <div
+                        key={historyItem.id}
+                        className={`border rounded-lg p-4 ${
+                          isToday(historyItem.createdAt)
+                            ? "border-primary border-2"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                          <CalendarDays size={14} />
+                          {formatDate(historyItem.createdAt)}
+                          {isToday(historyItem.createdAt) && (
+                            <span className="text-primary font-medium ml-2">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                        <div className="prose dark:prose-invert max-w-none">
+                          <ReactMarkdown>{historyItem.content}</ReactMarkdown>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
-              </div>
-            </TabsContent>
+              </TabsContent>
+            </CardContent>
+          </Tabs>
+        )}
+      </Card>
 
-            <TabsContent value="history">
-              {isLoadingHistory ? (
-                <div className="text-center py-4">Loading history...</div>
-              ) : answerHistory.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  You haven't answered this question before.
-                </div>
-              ) : (
-                <div className="space-y-6 mt-2">
-                  {answerHistory.map((historyItem) => (
-                    <div
-                      key={historyItem.id}
-                      className={`border rounded-lg p-4 ${
-                        isToday(historyItem.createdAt)
-                          ? "border-primary border-2"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <CalendarDays size={14} />
-                        {formatDate(historyItem.createdAt)}
-                        {isToday(historyItem.createdAt) && (
-                          <span className="text-primary font-medium ml-2">
-                            Today
-                          </span>
-                        )}
-                      </div>
-                      <div className="prose dark:prose-invert max-w-none">
-                        <ReactMarkdown>{historyItem.content}</ReactMarkdown>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          </CardContent>
-
-          <CardFooter className="flex justify-between">
-            {isEditing && (
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setContent(todaysAnswer ? todaysAnswer.content : "");
-                    setIsEditing(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={answeredToday ? handleUpdate : handleSave}
-                  disabled={isSaving || !content.trim()}
-                >
-                  {isSaving ? "Saving..." : answeredToday ? "Update" : "Save"}
-                </Button>
-              </div>
-            )}
-          </CardFooter>
-        </Tabs>
+      {/* Absolutely positioned footer at the bottom of the screen */}
+      {isEditing && (
+        <div className="fixed bottom-0 left-0 right-0 border-t py-4 px-6 bg-background shadow-md flex justify-end space-x-2 z-10">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setContent(todaysAnswer ? todaysAnswer.content : "");
+              setIsEditing(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={answeredToday ? handleUpdate : handleSave}
+            disabled={isSaving || !content.trim()}
+          >
+            {isSaving ? "Saving..." : answeredToday ? "Update" : "Save"}
+          </Button>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }

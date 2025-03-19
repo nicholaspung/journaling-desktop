@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as LogsImport } from './routes/logs'
+import { Route as AddQuestionImport } from './routes/add-question'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -19,6 +20,12 @@ import { Route as IndexImport } from './routes/index'
 const LogsRoute = LogsImport.update({
   id: '/logs',
   path: '/logs',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AddQuestionRoute = AddQuestionImport.update({
+  id: '/add-question',
+  path: '/add-question',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,6 +46,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/add-question': {
+      id: '/add-question'
+      path: '/add-question'
+      fullPath: '/add-question'
+      preLoaderRoute: typeof AddQuestionImport
+      parentRoute: typeof rootRoute
+    }
     '/logs': {
       id: '/logs'
       path: '/logs'
@@ -53,36 +67,41 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add-question': typeof AddQuestionRoute
   '/logs': typeof LogsRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add-question': typeof AddQuestionRoute
   '/logs': typeof LogsRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/add-question': typeof AddQuestionRoute
   '/logs': typeof LogsRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/logs'
+  fullPaths: '/' | '/add-question' | '/logs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/logs'
-  id: '__root__' | '/' | '/logs'
+  to: '/' | '/add-question' | '/logs'
+  id: '__root__' | '/' | '/add-question' | '/logs'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddQuestionRoute: typeof AddQuestionRoute
   LogsRoute: typeof LogsRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddQuestionRoute: AddQuestionRoute,
   LogsRoute: LogsRoute,
 }
 
@@ -97,11 +116,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/add-question",
         "/logs"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/add-question": {
+      "filePath": "add-question.tsx"
     },
     "/logs": {
       "filePath": "logs.tsx"

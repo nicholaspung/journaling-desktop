@@ -8,6 +8,9 @@ export default function Header() {
         <h1 className="text-xl font-bold">Daily Reflection</h1>
       </Link>
       <div className="flex items-center space-x-4">
+        <Link to="/add-question">
+          <h4>Add Question</h4>
+        </Link>
         <Link to="/logs">
           <h4>Logs</h4>
         </Link>

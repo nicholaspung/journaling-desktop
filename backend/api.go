@@ -119,6 +119,10 @@ func (a *App) GetAnswerHistoryByQuestionID(questionID int64) ([]models.AnswerHis
 }
 
 // Question CRUD operations
+func (a *App) AddQuestion(content string) (*models.Question, error) {
+	return models.AddQuestion(content)
+}
+
 func (a *App) UpdateQuestion(id int64, content string) error {
 	return models.UpdateQuestion(id, content)
 }
