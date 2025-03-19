@@ -76,6 +76,19 @@ func Initialize(dbPath string) error {
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`)
 
+	// Create creativity entries table
+	_, err = DB.Exec(`
+	CREATE TABLE IF NOT EXISTS creativity_entries (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		content TEXT NOT NULL,
+		entry_date TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	)`)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 

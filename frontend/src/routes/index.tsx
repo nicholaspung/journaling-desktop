@@ -1,4 +1,5 @@
 import AffirmationTracker from "@/components/AffirmationTracker";
+import CreativityJournal from "@/components/CreativityJournal";
 import GratitudePage from "@/components/gratitude/GratitudePage";
 import DailyQuestion from "@/components/questions/DailyQuestion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,7 +36,7 @@ function Index() {
             </TabsContent>
 
             <TabsContent value="creativity">
-              <div>Creativity jouranl</div>
+              <CreativityJournal />
             </TabsContent>
           </div>
         </Tabs>

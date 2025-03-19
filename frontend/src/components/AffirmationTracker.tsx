@@ -17,8 +17,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, CheckCircle2 } from "lucide-react";
+import {
+  CalendarIcon,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+} from "lucide-react";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { AFFIRMATION_EXAMPLES } from "@/lib/affirmation-examples";
 
 export default function AffirmationTracker() {
   const [affirmation, setAffirmation] = useState<Affirmation | null>(null);
@@ -27,6 +39,7 @@ export default function AffirmationTracker() {
   const [completedToday, setCompletedToday] = useState(false);
   const [streak, setStreak] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
 
   useEffect(() => {
     fetchAffirmation();
@@ -97,6 +110,11 @@ export default function AffirmationTracker() {
     }
   }
 
+  function handleSelectExample(example: string) {
+    setContent(example);
+    setShowExamples(false);
+  }
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
@@ -110,16 +128,59 @@ export default function AffirmationTracker() {
       </CardHeader>
       <CardContent className="space-y-4">
         {isEditing ? (
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Set your daily affirmation:
-            </label>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="I am..."
-              className="min-h-[100px]"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Set your daily affirmation:
+              </label>
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="I am..."
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <Collapsible
+              open={showExamples}
+              onOpenChange={setShowExamples}
+              className="border rounded-md"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex w-full justify-between p-4"
+                >
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Lightbulb className="h-4 w-4" />
+                    <span>Need inspiration? View example affirmations</span>
+                  </div>
+                  {showExamples ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 pb-4">
+                <div className="space-y-3">
+                  {AFFIRMATION_EXAMPLES.map((example, index) => (
+                    <div
+                      key={index}
+                      className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 transition-colors"
+                      onClick={() => handleSelectExample(example)}
+                    >
+                      <p className="text-sm italic">"{example}"</p>
+                      <div className="mt-2 text-right">
+                        <Button size="sm" variant="ghost">
+                          Select this affirmation
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         ) : affirmation ? (
           <div className="bg-muted p-6 rounded-lg text-center text-xl font-medium italic">
@@ -149,10 +210,14 @@ export default function AffirmationTracker() {
                   setIsEditing(false);
                 }
               }}
+              disabled={!affirmation}
             >
               Cancel
             </Button>
-            <Button onClick={handleSaveAffirmation} disabled={isSaving}>
+            <Button
+              onClick={handleSaveAffirmation}
+              disabled={isSaving || !content.trim()}
+            >
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </>

@@ -22,6 +22,8 @@ import {
   LogAffirmation,
   GetAllGratitudeEntries,
   AddGratitudeItem,
+  GetAllCreativityEntries,
+  SaveCreativityEntry,
 } from "../../../wailsjs/go/backend/App";
 import Papa from "papaparse";
 import { toast } from "sonner";
@@ -51,6 +53,7 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       const affirmations = (await GetAllAffirmations()) || [];
       const affirmationLogs = (await GetAllAffirmationLogs()) || [];
       const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
+      const creativityEntries = (await GetAllCreativityEntries()) || [];
 
       // Flatten gratitude entries for export
       const gratitudeItems: any[] = [];
@@ -65,7 +68,8 @@ const DataExportImport: React.FC<ExportImportProps> = ({
         answers,
         affirmations,
         affirmationLogs,
-        gratitudeItems
+        gratitudeItems,
+        creativityEntries
       );
 
       // Convert data to CSV format using PapaParse
@@ -74,6 +78,7 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       const affirmationsCSV = Papa.unparse(affirmations);
       const affirmationLogsCSV = Papa.unparse(affirmationLogs);
       const gratitudeItemsCSV = Papa.unparse(gratitudeItems);
+      const creativityEntriesCSV = Papa.unparse(creativityEntries);
 
       // Create a virtual link element for each CSV file and trigger download
       downloadCSV(questionsCSV, "questions.csv");
@@ -81,6 +86,7 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       downloadCSV(affirmationsCSV, "affirmations.csv");
       downloadCSV(affirmationLogsCSV, "affirmation_logs.csv");
       downloadCSV(gratitudeItemsCSV, "gratitude_items.csv");
+      downloadCSV(creativityEntriesCSV, "creativity_entries.csv");
 
       toast.success("All data exported successfully!");
     } catch (error) {
@@ -153,6 +159,8 @@ const DataExportImport: React.FC<ExportImportProps> = ({
           tableType = "affirmationLogs";
         else if (fileName.includes("affirmation")) tableType = "affirmations";
         else if (fileName.includes("gratitude")) tableType = "gratitudeItems";
+        else if (fileName.includes("creativity"))
+          tableType = "creativityEntries";
         else {
           errors.push(
             `Could not determine data type for ${file.name}. Skipping.`
@@ -296,6 +304,23 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       }
     }
 
+    // Validate creativity entries
+    if (data.creativityEntries) {
+      for (let i = 0; i < data.creativityEntries.length; i++) {
+        const entry = data.creativityEntries[i];
+        if (!entry.content || typeof entry.content !== "string") {
+          errors.push(
+            `Creativity entries row ${i + 1}: Missing or invalid 'content' field`
+          );
+        }
+        if (!entry.entryDate || typeof entry.entryDate !== "string") {
+          errors.push(
+            `Creativity entries row ${i + 1}: Missing or invalid 'entryDate' field`
+          );
+        }
+      }
+    }
+
     return errors;
   };
 
@@ -307,7 +332,8 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       (data.affirmations?.length || 0) +
       (data.answers?.length || 0) +
       (data.affirmationLogs?.length || 0) +
-      (data.gratitudeItems?.length || 0);
+      (data.gratitudeItems?.length || 0) +
+      (data.creativityEntries?.length || 0);
 
     let importedCount = 0;
 
@@ -347,6 +373,22 @@ const DataExportImport: React.FC<ExportImportProps> = ({
         } catch (error) {
           console.error("Error importing gratitude item:", error);
           // Continue with other items even if one fails
+        }
+      }
+    }
+
+    // Import creativity entries
+    if (data.creativityEntries && data.creativityEntries.length > 0) {
+      for (const entry of data.creativityEntries) {
+        try {
+          await SaveCreativityEntry(entry.content, entry.entryDate);
+          importedCount++;
+          setImportProgress(
+            progress + Math.floor((importedCount / totalItems) * 50)
+          );
+        } catch (error) {
+          console.error("Error importing creativity entry:", error);
+          // Continue with other entries even if one fails
         }
       }
     }

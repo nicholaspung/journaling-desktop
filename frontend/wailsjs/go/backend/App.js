@@ -34,6 +34,10 @@ export function DeleteAnswer(arg1) {
   return window['go']['backend']['App']['DeleteAnswer'](arg1);
 }
 
+export function DeleteCreativityEntry(arg1) {
+  return window['go']['backend']['App']['DeleteCreativityEntry'](arg1);
+}
+
 export function DeleteGratitudeItem(arg1) {
   return window['go']['backend']['App']['DeleteGratitudeItem'](arg1);
 }
@@ -62,6 +66,10 @@ export function GetAllAnswers() {
   return window['go']['backend']['App']['GetAllAnswers']();
 }
 
+export function GetAllCreativityEntries() {
+  return window['go']['backend']['App']['GetAllCreativityEntries']();
+}
+
 export function GetAllGratitudeEntries() {
   return window['go']['backend']['App']['GetAllGratitudeEntries']();
 }
@@ -72,6 +80,14 @@ export function GetAllQuestions() {
 
 export function GetAnswerHistoryByQuestionID(arg1) {
   return window['go']['backend']['App']['GetAnswerHistoryByQuestionID'](arg1);
+}
+
+export function GetCreativityEntryByDate(arg1) {
+  return window['go']['backend']['App']['GetCreativityEntryByDate'](arg1);
+}
+
+export function GetCreativityStreak() {
+  return window['go']['backend']['App']['GetCreativityStreak']();
 }
 
 export function GetGratitudeItemsByDate(arg1) {
@@ -102,6 +118,10 @@ export function GetTodayGratitudeItems() {
   return window['go']['backend']['App']['GetTodayGratitudeItems']();
 }
 
+export function HasCreativityEntryForDate(arg1) {
+  return window['go']['backend']['App']['HasCreativityEntryForDate'](arg1);
+}
+
 export function HasTodayGratitudeEntries() {
   return window['go']['backend']['App']['HasTodayGratitudeEntries']();
 }
@@ -114,12 +134,20 @@ export function SaveAffirmation(arg1) {
   return window['go']['backend']['App']['SaveAffirmation'](arg1);
 }
 
+export function SaveCreativityEntry(arg1, arg2) {
+  return window['go']['backend']['App']['SaveCreativityEntry'](arg1, arg2);
+}
+
 export function UpdateAffirmation(arg1, arg2) {
   return window['go']['backend']['App']['UpdateAffirmation'](arg1, arg2);
 }
 
 export function UpdateAnswer(arg1, arg2) {
   return window['go']['backend']['App']['UpdateAnswer'](arg1, arg2);
+}
+
+export function UpdateCreativityEntry(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateCreativityEntry'](arg1, arg2);
 }
 
 export function UpdateGratitudeItem(arg1, arg2) {

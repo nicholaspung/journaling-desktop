@@ -5,6 +5,7 @@ import {
   CheckCircle,
   Award,
   Heart,
+  Brain,
 } from "lucide-react";
 import {
   GetAllAffirmationLogs,
@@ -21,6 +22,9 @@ import {
   GetAllGratitudeEntries,
   UpdateGratitudeItem,
   DeleteGratitudeItem,
+  GetAllCreativityEntries,
+  UpdateCreativityEntry,
+  DeleteCreativityEntry,
 } from "../../../wailsjs/go/backend/App";
 import {
   Affirmation,
@@ -29,6 +33,7 @@ import {
   Question,
   TabConfig,
   GratitudeItem,
+  CreativityEntry,
 } from "@/types";
 import DataViewer from "./data-viewer";
 import DataExportImport from "./data-export-import";
@@ -41,6 +46,9 @@ const LogViewerWithDataViewer: React.FC = () => {
     JoinedAffirmationLog[]
   >([]);
   const [gratitudeItems, setGratitudeItems] = useState<GratitudeItem[]>([]);
+  const [creativityEntries, setCreativityEntries] = useState<CreativityEntry[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +68,9 @@ const LogViewerWithDataViewer: React.FC = () => {
 
       // Get all gratitude entries
       const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
+
+      // Get all creativity entries
+      const creativityEntriesData = (await GetAllCreativityEntries()) || [];
 
       // Flatten the gratitude entries into a single array of items
       const flattenedGratitudeItems: GratitudeItem[] = [];
@@ -92,6 +103,7 @@ const LogViewerWithDataViewer: React.FC = () => {
       setAffirmations(affirmationsData);
       setAffirmationLogs(joinedAffirmationLogs);
       setGratitudeItems(flattenedGratitudeItems);
+      setCreativityEntries(creativityEntriesData);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load data. Please try again.");
@@ -194,7 +206,7 @@ const LogViewerWithDataViewer: React.FC = () => {
           key: "questionContent",
           header: "Question",
           truncate: true,
-          maxWidth: "max-w-[300px]",
+          maxWidth: "max-w-[600px]",
         },
         { key: "content", header: "Answer Content", width: "w-full" },
         { key: "createdAt", header: "Created At", filterable: false },
@@ -295,7 +307,7 @@ const LogViewerWithDataViewer: React.FC = () => {
         {
           key: "entryDate",
           header: "Entry Date",
-          filterable: true,
+          filterable: false,
           renderCell: (item) => <span>{item.entryDate}</span>,
         },
         { key: "createdAt", header: "Created At", filterable: false },
@@ -317,6 +329,54 @@ const LogViewerWithDataViewer: React.FC = () => {
         setGratitudeItems(
           gratitudeItems.map((item) =>
             item.id === id ? { ...item, content } : item
+          )
+        );
+      },
+      defaultSortColumn: "entryDate",
+      defaultSortDirection: "desc",
+    },
+    {
+      id: "creativity-entries",
+      label: "Creativity Journal",
+      icon: Brain,
+      data: creativityEntries,
+      columns: [
+        { key: "id", header: "ID", filterable: false },
+        {
+          key: "content",
+          header: "Journal Content",
+          width: "w-full",
+          truncate: true,
+          maxWidth: "max-w-[500px]",
+        },
+        {
+          key: "entryDate",
+          header: "Entry Date",
+          filterable: false,
+          renderCell: (entry) => <span>{entry.entryDate}</span>,
+        },
+        { key: "createdAt", header: "Created At", filterable: false },
+        { key: "updatedAt", header: "Updated At", filterable: false },
+      ],
+      idField: "id",
+      contentField: "content",
+      canEdit: true,
+      canDelete: true,
+      emptyMessage: "No creativity journal entries found",
+      onUpdate: async (id, content) => {
+        await UpdateCreativityEntry(id, content);
+      },
+      onDelete: async (id) => {
+        await DeleteCreativityEntry(id);
+        setCreativityEntries(
+          creativityEntries.filter((entry) => entry.id !== id)
+        );
+      },
+      additionalUpdates: (id, content) => {
+        // Update local state
+        setCreativityEntries(
+          creativityEntries.map((entry) =>
+            entry.id === id ? { ...entry, content } : entry
           )
         );
       },

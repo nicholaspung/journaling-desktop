@@ -298,7 +298,7 @@ export default function DailyQuestion() {
                     <CalendarDays size={14} />
                     <span>Today</span>
                   </div>
-                  <div className="prose dark:prose-invert max-w-none">
+                  <div className="max-w-none markdown-content whitespace-pre-wrap">
                     <ReactMarkdown>{todaysAnswer?.content || ""}</ReactMarkdown>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export default function DailyQuestion() {
                     <CalendarDays size={14} />
                     {formatDate(comparisonAnswer?.createdAt || "")}
                   </div>
-                  <div className="prose dark:prose-invert max-w-none">
+                  <div className="max-w-none markdown-content whitespace-pre-wrap">
                     <ReactMarkdown>
                       {comparisonAnswer?.content || ""}
                     </ReactMarkdown>
@@ -354,7 +354,7 @@ export default function DailyQuestion() {
                       placeholder="Write your answer here using markdown..."
                     />
                   ) : (
-                    <div className="relative prose dark:prose-invert max-w-none border rounded-md p-4">
+                    <div className="relative max-w-none border rounded-md p-4 markdown-content whitespace-pre-wrap">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -416,7 +416,7 @@ export default function DailyQuestion() {
                             </Button>
                           )}
                         </div>
-                        <div className="prose dark:prose-invert max-w-none">
+                        <div className="max-w-none markdown-content whitespace-pre-wrap">
                           <ReactMarkdown>{historyItem.content}</ReactMarkdown>
                         </div>
                       </div>

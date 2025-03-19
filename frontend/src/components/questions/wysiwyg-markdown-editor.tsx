@@ -408,7 +408,7 @@ const WysiwygMarkdownEditor: React.FC<WysiwygMarkdownEditorProps> = ({
         {/* Preview layer - visibility depends on viewMode */}
         <div
           ref={previewRef}
-          className={`${isSplitView ? "w-1/2" : "w-full"} h-full min-h-[300px] p-4 overflow-auto prose dark:prose-invert max-w-none ${
+          className={`${isSplitView ? "w-1/2" : "w-full"} h-full min-h-[300px] p-4 overflow-auto max-w-none markdown-content whitespace-pre-wrap ${
             showPreview ? "" : "hidden"
           }`}
           style={{ pointerEvents: "none" }}

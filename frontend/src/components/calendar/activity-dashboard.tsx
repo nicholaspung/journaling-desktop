@@ -24,14 +24,24 @@ import {
   Heart,
   ArrowLeft,
 } from "lucide-react";
-import { getLocalDateString } from "@/lib/utils";
+import { formatDate, getLocalDateString } from "@/lib/utils";
 import { Button } from "../ui/button";
 import DashboardSummaryCard from "../reusable/dashboard-summary-card";
+import { Brain } from "lucide-react";
+import {
+  GetAllCreativityEntries,
+  GetCreativityStreak,
+} from "../../../wailsjs/go/backend/App";
+import { CreativityEntry } from "@/types";
+import TrimmedContentItem from "./trimmed-content-item";
 
 const ActivityDashboard: React.FC = () => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [affirmationLogs, setAffirmationLogs] = useState<AffirmationLog[]>([]);
   const [gratitudeItems, setGratitudeItems] = useState<GratitudeItem[]>([]);
+  const [creativityEntries, setCreativityEntries] = useState<CreativityEntry[]>(
+    []
+  );
   const [stats, setStats] = useState<ActivityStats>({
     totalAnswers: 0,
     totalAffirmations: 0,
@@ -39,8 +49,11 @@ const ActivityDashboard: React.FC = () => {
     totalAffirmationDays: 0,
     totalGratitudeItems: 0,
     totalGratitudeDays: 0,
+    totalCreativityEntries: 0,
+    totalCreativityDays: 0,
     currentAffirmationStreak: 0,
     currentGratitudeStreak: 0,
+    currentCreativityStreak: 0,
     longestStreak: 0,
     completionRate: 0,
   });
@@ -51,16 +64,19 @@ const ActivityDashboard: React.FC = () => {
     fetchActivityData();
   }, []);
 
+  // Update the fetchActivityData function to include creativity entries
   const fetchActivityData = async () => {
     try {
       setLoading(true);
 
-      // Fetch answers, affirmation logs, and gratitude entries
+      // Fetch answers, affirmation logs, gratitude entries, and creativity entries
       const answersData = (await GetAllAnswers()) || [];
       const affirmationLogsData = (await GetAllAffirmationLogs()) || [];
       const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
+      const creativityEntriesData = (await GetAllCreativityEntries()) || [];
       const affirmationStreak = (await GetAffirmationStreak()) || 0;
       const gratitudeStreak = (await GetGratitudeStreak()) || 0;
+      const creativityStreak = (await GetCreativityStreak()) || 0;
 
       setAnswers(answersData);
       setAffirmationLogs(affirmationLogsData);
@@ -70,6 +86,7 @@ const ActivityDashboard: React.FC = () => {
         (entry) => entry.items
       );
       setGratitudeItems(allGratitudeItems);
+      setCreativityEntries(creativityEntriesData);
 
       // Calculate statistics
       calculateStats(
@@ -77,8 +94,10 @@ const ActivityDashboard: React.FC = () => {
         affirmationLogsData,
         gratitudeEntriesData,
         allGratitudeItems,
+        creativityEntriesData,
         affirmationStreak,
-        gratitudeStreak
+        gratitudeStreak,
+        creativityStreak
       );
     } catch (err) {
       console.error("Error fetching activity data:", err);
@@ -93,8 +112,10 @@ const ActivityDashboard: React.FC = () => {
     affirmationLogsData: AffirmationLog[],
     gratitudeEntriesData: GratitudeEntry[],
     gratitudeItemsData: GratitudeItem[],
+    creativityEntriesData: CreativityEntry[],
     affirmationStreak: number,
-    gratitudeStreak: number
+    gratitudeStreak: number,
+    creativityStreak: number
   ) => {
     // Get unique dates for answers
     const answerDates = new Set(
@@ -115,10 +136,16 @@ const ActivityDashboard: React.FC = () => {
       gratitudeEntriesData.map((entry) => entry.date)
     );
 
-    // Calculate total unique days with answers, affirmations, and gratitude
+    // Get unique dates for creativity entries
+    const creativityDates = new Set(
+      creativityEntriesData.map((entry) => entry.entryDate)
+    );
+
+    // Calculate total unique days with each activity
     const totalAnswerDays = answerDates.size;
     const totalAffirmationDays = affirmationDates.size;
     const totalGratitudeDays = gratitudeDates.size;
+    const totalCreativityDays = creativityDates.size;
 
     // Calculate completion rates for the last 30 days
     const last30Days = new Set();
@@ -134,44 +161,46 @@ const ActivityDashboard: React.FC = () => {
     let answerCompleteDays = 0;
     let affirmationCompleteDays = 0;
     let gratitudeCompleteDays = 0;
+    let creativityCompleteDays = 0;
 
     last30Days.forEach((dateStr) => {
       if (answerDates.has(dateStr as string)) answerCompleteDays++;
       if (affirmationDates.has(dateStr as string)) affirmationCompleteDays++;
       if (gratitudeDates.has(dateStr as string)) gratitudeCompleteDays++;
+      if (creativityDates.has(dateStr as string)) creativityCompleteDays++;
     });
 
-    // Calculate overall completion rate (average of all three)
+    // Calculate overall completion rate (average of all four)
     const completionRate = Math.round(
-      ((answerCompleteDays + affirmationCompleteDays + gratitudeCompleteDays) /
-        (30 * 3)) *
+      ((answerCompleteDays +
+        affirmationCompleteDays +
+        gratitudeCompleteDays +
+        creativityCompleteDays) /
+        (30 * 4)) *
         100
     );
 
-    // Determine longest streak (use the max of affirmation and gratitude streaks)
-    const longestStreak = Math.max(affirmationStreak, gratitudeStreak);
+    // Determine longest streak (use the max of all streaks)
+    const longestStreak = Math.max(
+      affirmationStreak,
+      gratitudeStreak,
+      creativityStreak
+    );
 
     setStats({
       totalAnswers: answersData.length,
       totalAffirmations: affirmationLogsData.length,
       totalGratitudeItems: gratitudeItemsData.length,
+      totalCreativityEntries: creativityEntriesData.length,
       totalAnswerDays,
       totalAffirmationDays,
       totalGratitudeDays,
+      totalCreativityDays,
       currentAffirmationStreak: affirmationStreak,
       currentGratitudeStreak: gratitudeStreak,
+      currentCreativityStreak: creativityStreak,
       longestStreak,
       completionRate,
-    });
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
     });
   };
 
@@ -206,6 +235,17 @@ const ActivityDashboard: React.FC = () => {
       )
       .slice(0, 5);
   };
+
+  const getRecentCreativityEntries = () => {
+    return [...creativityEntries]
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+      .slice(0, 5);
+  };
+
+  console.log(getRecentCreativityEntries());
 
   if (loading) {
     return (
@@ -267,7 +307,7 @@ const ActivityDashboard: React.FC = () => {
             />
           </div>
 
-          <div className="grid gap-4 grid-cols-3">
+          <div className="grid gap-4 grid-cols-4">
             <DashboardSummaryCard
               title="Total Affirmations"
               icon={<Award className="h-4 w-4 text-muted-foreground" />}
@@ -283,6 +323,13 @@ const ActivityDashboard: React.FC = () => {
             />
 
             <DashboardSummaryCard
+              title="Creativity Entries"
+              icon={<Brain className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalCreativityEntries}
+              description="Journal entries"
+            />
+
+            <DashboardSummaryCard
               title="Completion Rate"
               icon={<LineChart className="h-4 w-4 text-muted-foreground" />}
               stat={`${stats.completionRate}%`}
@@ -290,7 +337,7 @@ const ActivityDashboard: React.FC = () => {
             />
           </div>
 
-          <div className="grid gap-4 grid-cols-4">
+          <div className="grid gap-4 grid-cols-3">
             <DashboardSummaryCard
               title="Affirmation Days"
               icon={<Award className="h-4 w-4 text-muted-foreground" />}
@@ -306,6 +353,15 @@ const ActivityDashboard: React.FC = () => {
             />
 
             <DashboardSummaryCard
+              title="Creativity Days"
+              icon={<Brain className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalCreativityDays}
+              description="Days with entries"
+            />
+          </div>
+
+          <div className="grid gap-4 grid-cols-3">
+            <DashboardSummaryCard
               title="Aff. Streak"
               icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
               stat={stats.currentAffirmationStreak}
@@ -318,6 +374,13 @@ const ActivityDashboard: React.FC = () => {
               stat={stats.currentGratitudeStreak}
               description="Gratitude days"
             />
+
+            <DashboardSummaryCard
+              title="Crea. Streak"
+              icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.currentCreativityStreak}
+              description="Creativity days"
+            />
           </div>
 
           <Card className="mb-2">
@@ -326,24 +389,27 @@ const ActivityDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="answers">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="answers">Answers</TabsTrigger>
                   <TabsTrigger value="affirmations">Affirmations</TabsTrigger>
                   <TabsTrigger value="gratitude">Gratitude</TabsTrigger>
+                  <TabsTrigger value="creativity">Creativity</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="answers" className="space-y-4 mt-4">
                   {getRecentAnswers().length > 0 ? (
                     <div className="space-y-4">
                       {getRecentAnswers().map((answer) => (
-                        <div key={answer.id} className="border-b pb-2">
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {formatDate(answer.createdAt)}
-                          </p>
-                          <p className="font-medium line-clamp-2">
-                            {answer.content}
-                          </p>
-                        </div>
+                        <TrimmedContentItem
+                          key={answer.id}
+                          id={answer.id}
+                          content={answer.content}
+                          date={formatDate(
+                            getLocalDateString(answer.createdAt)
+                          )}
+                          title="Answer"
+                          maxLines={2}
+                        />
                       ))}
                     </div>
                   ) : (
@@ -359,7 +425,7 @@ const ActivityDashboard: React.FC = () => {
                       {getRecentAffirmations().map((log) => (
                         <div key={log.id} className="border-b pb-2">
                           <p className="text-xs text-muted-foreground">
-                            {formatDate(log.completedAt)}
+                            {formatDate(getLocalDateString(log.completedAt))}
                           </p>
                           <p className="font-medium">Affirmation completed</p>
                         </div>
@@ -389,6 +455,27 @@ const ActivityDashboard: React.FC = () => {
                   ) : (
                     <p className="text-muted-foreground">
                       No recent gratitude entries found.
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="creativity" className="space-y-4 mt-4">
+                  {getRecentCreativityEntries().length > 0 ? (
+                    <div className="space-y-4">
+                      {getRecentCreativityEntries().map((entry) => (
+                        <TrimmedContentItem
+                          key={entry.id}
+                          id={entry.id}
+                          content={entry.content}
+                          date={formatDate(entry.entryDate)}
+                          title="Creativity Entry"
+                          maxLines={2}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No recent creativity entries found.
                     </p>
                   )}
                 </TabsContent>

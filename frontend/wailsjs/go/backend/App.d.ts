@@ -18,6 +18,8 @@ export function DeleteAffirmationLog(arg1:number):Promise<void>;
 
 export function DeleteAnswer(arg1:number):Promise<void>;
 
+export function DeleteCreativityEntry(arg1:number):Promise<void>;
+
 export function DeleteGratitudeItem(arg1:number):Promise<void>;
 
 export function DeleteQuestion(arg1:number):Promise<void>;
@@ -32,11 +34,17 @@ export function GetAllAffirmations():Promise<Array<models.Affirmation>>;
 
 export function GetAllAnswers():Promise<Array<models.Answer>>;
 
+export function GetAllCreativityEntries():Promise<Array<models.CreativityEntry>>;
+
 export function GetAllGratitudeEntries():Promise<Array<models.GratitudeEntry>>;
 
 export function GetAllQuestions():Promise<Array<models.Question>>;
 
 export function GetAnswerHistoryByQuestionID(arg1:number):Promise<Array<models.AnswerHistory>>;
+
+export function GetCreativityEntryByDate(arg1:string):Promise<models.CreativityEntry>;
+
+export function GetCreativityStreak():Promise<number>;
 
 export function GetGratitudeItemsByDate(arg1:string):Promise<Array<models.GratitudeItem>>;
 
@@ -52,15 +60,21 @@ export function GetRecentAnswers(arg1:number):Promise<Array<models.Answer>>;
 
 export function GetTodayGratitudeItems():Promise<Array<models.GratitudeItem>>;
 
+export function HasCreativityEntryForDate(arg1:string):Promise<boolean>;
+
 export function HasTodayGratitudeEntries():Promise<boolean>;
 
 export function LogAffirmation(arg1:number):Promise<void>;
 
 export function SaveAffirmation(arg1:string):Promise<models.Affirmation>;
 
+export function SaveCreativityEntry(arg1:string,arg2:string):Promise<models.CreativityEntry>;
+
 export function UpdateAffirmation(arg1:number,arg2:string):Promise<void>;
 
 export function UpdateAnswer(arg1:number,arg2:string):Promise<void>;
+
+export function UpdateCreativityEntry(arg1:number,arg2:string):Promise<void>;
 
 export function UpdateGratitudeItem(arg1:number,arg2:string):Promise<void>;
 

@@ -21,12 +21,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn, getLocalDateString } from "@/lib/utils";
+import { Brain } from "lucide-react";
+import { GetAllCreativityEntries } from "../../../wailsjs/go/backend/App";
+import { CreativityEntry } from "@/types";
 
 const ActivityCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [affirmationLogs, setAffirmationLogs] = useState<AffirmationLog[]>([]);
   const [gratitudeEntries, setGratitudeEntries] = useState<GratitudeEntry[]>(
+    []
+  );
+  const [creativityEntries, setCreativityEntries] = useState<CreativityEntry[]>(
     []
   );
   const [loading, setLoading] = useState(true);
@@ -41,14 +47,16 @@ const ActivityCalendar = () => {
     try {
       setLoading(true);
 
-      // Fetch answers, affirmation completions, and gratitude entries
+      // Fetch answers, affirmation completions, gratitude entries, and creativity entries
       const answersData = (await GetAllAnswers()) || [];
       const affirmationLogsData = (await GetAllAffirmationLogs()) || [];
       const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
+      const creativityEntriesData = (await GetAllCreativityEntries()) || [];
 
       setAnswers(answersData);
       setAffirmationLogs(affirmationLogsData);
       setGratitudeEntries(gratitudeEntriesData);
+      setCreativityEntries(creativityEntriesData);
     } catch (err) {
       console.error("Error fetching activity data:", err);
       setError("Failed to load activity data");
@@ -100,6 +108,12 @@ const ActivityCalendar = () => {
     return Array.from(dates);
   };
 
+  const getDatesWithCreativity = () => {
+    return creativityEntries.map((entry) => {
+      return entry.entryDate;
+    });
+  };
+
   // Format a date to YYYY-MM-DD in local timezone
   const formatDateString = (date: Date) => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -132,6 +146,7 @@ const ActivityCalendar = () => {
     const datesWithAnswers = getDatesWithAnswers();
     const datesWithAffirmations = getDatesWithAffirmations();
     const datesWithGratitude = getDatesWithGratitude();
+    const datesWithCreativity = getDatesWithCreativity();
 
     // Generate calendar days
     const days = [];
@@ -146,11 +161,12 @@ const ActivityCalendar = () => {
       days.push({
         date,
         dateStr,
-        day,
-        isCurrentMonth: false,
+        day: i,
+        isCurrentMonth: true,
         hasAnswer: datesWithAnswers.includes(dateStr),
         hasAffirmation: datesWithAffirmations.includes(dateStr),
         hasGratitude: datesWithGratitude.includes(dateStr),
+        hasCreativity: datesWithCreativity.includes(dateStr),
       });
     }
 
@@ -167,6 +183,7 @@ const ActivityCalendar = () => {
         hasAnswer: datesWithAnswers.includes(dateStr),
         hasAffirmation: datesWithAffirmations.includes(dateStr),
         hasGratitude: datesWithGratitude.includes(dateStr),
+        hasCreativity: datesWithCreativity.includes(dateStr),
       });
     }
 
@@ -184,6 +201,7 @@ const ActivityCalendar = () => {
         hasAnswer: datesWithAnswers.includes(dateStr),
         hasAffirmation: datesWithAffirmations.includes(dateStr),
         hasGratitude: datesWithGratitude.includes(dateStr),
+        hasCreativity: datesWithCreativity.includes(dateStr),
       });
     }
 
@@ -294,6 +312,11 @@ const ActivityCalendar = () => {
                           <Heart size={14} />
                         </div>
                       )}
+                      {day.hasCreativity && (
+                        <div className="text-purple-500">
+                          <Brain size={14} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -335,6 +358,12 @@ const ActivityCalendar = () => {
                             </span>
                           </div>
                         )}
+                        {day.hasCreativity && (
+                          <div className="flex items-center text-sm">
+                            <Brain size={12} className="mr-1 text-purple-500" />
+                            <span>Creativity journal entry</span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
@@ -361,6 +390,10 @@ const ActivityCalendar = () => {
           <div className="flex items-center">
             <Heart size={14} className="mr-1 text-red-500" />
             <span>Gratitude entries</span>
+          </div>
+          <div className="flex items-center">
+            <Brain size={14} className="mr-1 text-purple-500" />
+            <span>Creativity entry</span>
           </div>
         </div>
       </CardContent>

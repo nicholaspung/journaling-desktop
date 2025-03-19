@@ -94,12 +94,15 @@ export interface CalendarDay {
 export interface ActivityStats {
   totalAnswers: number;
   totalAffirmations: number;
-  totalGratitudeItems?: number; // New property
   totalAnswerDays: number;
   totalAffirmationDays: number;
-  totalGratitudeDays?: number; // New property
-  currentAffirmationStreak?: number; // Renamed from currentStreak
-  currentGratitudeStreak?: number; // New property
+  totalGratitudeItems: number;
+  totalGratitudeDays: number;
+  totalCreativityEntries: number;
+  totalCreativityDays: number;
+  currentAffirmationStreak: number;
+  currentGratitudeStreak: number;
+  currentCreativityStreak: number;
   longestStreak: number;
   completionRate: number;
 }
@@ -125,4 +128,12 @@ export interface GratitudeItem {
 export interface GratitudeEntry {
   date: string;
   items: GratitudeItem[];
+}
+
+export interface CreativityEntry {
+  id: number;
+  content: string;
+  entryDate: string;
+  createdAt: string;
+  updatedAt: string;
 }
