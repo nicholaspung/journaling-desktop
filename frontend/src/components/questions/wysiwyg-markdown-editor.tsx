@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import KeyboardShortcutMenu from "./KeyboardShortcutMenu";
+import KeyboardShortcutMenu from "./keyboard-shortcut-menu";
 
 interface WysiwygMarkdownEditorProps {
   value: string;

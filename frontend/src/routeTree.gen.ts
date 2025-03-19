@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as LogsImport } from './routes/logs'
+import { Route as CalendarImport } from './routes/calendar'
 import { Route as AddQuestionImport } from './routes/add-question'
 import { Route as IndexImport } from './routes/index'
 
@@ -20,6 +21,12 @@ import { Route as IndexImport } from './routes/index'
 const LogsRoute = LogsImport.update({
   id: '/logs',
   path: '/logs',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CalendarRoute = CalendarImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,6 +60,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AddQuestionImport
       parentRoute: typeof rootRoute
     }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarImport
+      parentRoute: typeof rootRoute
+    }
     '/logs': {
       id: '/logs'
       path: '/logs'
@@ -68,12 +82,14 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add-question': typeof AddQuestionRoute
+  '/calendar': typeof CalendarRoute
   '/logs': typeof LogsRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add-question': typeof AddQuestionRoute
+  '/calendar': typeof CalendarRoute
   '/logs': typeof LogsRoute
 }
 
@@ -81,27 +97,30 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/add-question': typeof AddQuestionRoute
+  '/calendar': typeof CalendarRoute
   '/logs': typeof LogsRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add-question' | '/logs'
+  fullPaths: '/' | '/add-question' | '/calendar' | '/logs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add-question' | '/logs'
-  id: '__root__' | '/' | '/add-question' | '/logs'
+  to: '/' | '/add-question' | '/calendar' | '/logs'
+  id: '__root__' | '/' | '/add-question' | '/calendar' | '/logs'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddQuestionRoute: typeof AddQuestionRoute
+  CalendarRoute: typeof CalendarRoute
   LogsRoute: typeof LogsRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddQuestionRoute: AddQuestionRoute,
+  CalendarRoute: CalendarRoute,
   LogsRoute: LogsRoute,
 }
 
@@ -117,6 +136,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/add-question",
+        "/calendar",
         "/logs"
       ]
     },
@@ -125,6 +145,9 @@ export const routeTree = rootRoute
     },
     "/add-question": {
       "filePath": "add-question.tsx"
+    },
+    "/calendar": {
+      "filePath": "calendar.tsx"
     },
     "/logs": {
       "filePath": "logs.tsx"

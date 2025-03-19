@@ -204,8 +204,11 @@ const DataViewer: React.FC<DataViewerProps> = ({
             </CardHeader>
           ))}
         <CardContent>
-          <Tabs defaultValue={defaultTab || processedTabs[0]?.id}>
-            <TabsList className="w-full mb-4">
+          <Tabs
+            defaultValue={defaultTab || processedTabs[0]?.id}
+            className="w-full"
+          >
+            <TabsList className={`grid grid-cols-4 mb-4`}>
               {processedTabs.map((tab) => (
                 <TabsTrigger
                   key={tab.id}

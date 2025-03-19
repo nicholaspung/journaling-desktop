@@ -79,3 +79,34 @@ export type TabConfig<T> = {
   pageSizeOptions?: number[]; // Available page size options
   exportFilename?: string; // Filename for export (without extension)
 };
+
+// Calendar view types
+export interface CalendarDay {
+  date: Date;
+  dateStr: string;
+  day: number;
+  isCurrentMonth: boolean;
+  hasAnswer: boolean;
+  hasAffirmation: boolean;
+}
+
+// Stats and aggregation types
+export interface ActivityStats {
+  totalAnswers: number;
+  totalAffirmations: number;
+  totalAnswerDays: number;
+  totalAffirmationDays: number;
+  currentStreak: number;
+  longestStreak: number;
+  completionRate: number;
+}
+
+// Data export/import types
+export interface ExportData {
+  questions: Question[];
+  answers: Answer[];
+  affirmations: Affirmation[];
+  affirmationLogs: AffirmationLog[];
+  exportDate: string;
+  version: string;
+}

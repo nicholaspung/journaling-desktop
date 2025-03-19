@@ -17,7 +17,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, Edit2 } from "lucide-react";
+import {
+  CalendarDays,
+  Edit2,
+  ArrowLeft,
+  GitCompareArrows,
+  RefreshCw,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import WysiwygMarkdownEditor from "./wysiwyg-markdown-editor";
 import { toast } from "sonner";
@@ -32,6 +38,10 @@ export default function DailyQuestion() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [todaysAnswer, setTodaysAnswer] = useState<Answer | null>(null);
   const [answeredToday, setAnsweredToday] = useState(false);
+  // New state for comparison view
+  const [isComparing, setIsComparing] = useState(false);
+  const [comparisonAnswer, setComparisonAnswer] = useState<Answer | null>(null);
+  const [activeTab, setActiveTab] = useState("write");
 
   useEffect(() => {
     checkTodaysAnswer();
@@ -213,6 +223,18 @@ export default function DailyQuestion() {
     }
   };
 
+  // Function to handle the compare button click
+  const handleCompare = (historyItem: Answer) => {
+    setComparisonAnswer(historyItem);
+    setIsComparing(true);
+  };
+
+  // Function to exit comparison view
+  const exitCompareView = () => {
+    setIsComparing(false);
+    setComparisonAnswer(null);
+  };
+
   return (
     <div className="relative pb-16">
       <Card className="w-full mx-auto">
@@ -229,6 +251,23 @@ export default function DailyQuestion() {
                 })}
               </CardDescription>
             </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchRandomQuestion}
+                disabled={answeredToday}
+                className="flex items-center gap-2"
+                title={
+                  answeredToday
+                    ? "You've already answered a question today"
+                    : "Get a new random question"
+                }
+              >
+                <RefreshCw size={16} />
+                New Question
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -236,8 +275,57 @@ export default function DailyQuestion() {
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-muted-foreground">Loading question...</div>
           </CardContent>
+        ) : isComparing ? (
+          // Comparison View
+          <>
+            <CardContent>
+              <div className="flex items-center mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={exitCompareView}
+                  className="mr-2"
+                >
+                  <ArrowLeft size={16} className="mr-1" /> Back
+                </Button>
+                <div className="text-xl font-medium">{question?.content}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Today's Answer */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <CalendarDays size={14} />
+                    <span>Today</span>
+                  </div>
+                  <div className="prose dark:prose-invert max-w-none">
+                    <ReactMarkdown>{todaysAnswer?.content || ""}</ReactMarkdown>
+                  </div>
+                </div>
+
+                {/* Historical Answer */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <CalendarDays size={14} />
+                    {formatDate(comparisonAnswer?.createdAt || "")}
+                  </div>
+                  <div className="prose dark:prose-invert max-w-none">
+                    <ReactMarkdown>
+                      {comparisonAnswer?.content || ""}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </>
         ) : (
-          <Tabs defaultValue="write" className="w-full">
+          // Normal View
+          <Tabs
+            defaultValue="write"
+            className="w-full"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <CardContent>
               <div className="text-xl font-medium mb-4">
                 {question?.content}
@@ -307,13 +395,25 @@ export default function DailyQuestion() {
                             : ""
                         }`}
                       >
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                          <CalendarDays size={14} />
-                          {formatDate(historyItem.createdAt)}
-                          {isToday(historyItem.createdAt) && (
-                            <span className="text-primary font-medium ml-2">
-                              Today
-                            </span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <CalendarDays size={14} />
+                            {formatDate(historyItem.createdAt)}
+                            {isToday(historyItem.createdAt) && (
+                              <span className="text-primary font-medium ml-2">
+                                Today
+                              </span>
+                            )}
+                          </div>
+                          {!isToday(historyItem.createdAt) && answeredToday && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompare(historyItem)}
+                            >
+                              <GitCompareArrows size={14} className="mr-1" />{" "}
+                              Compare
+                            </Button>
                           )}
                         </div>
                         <div className="prose dark:prose-invert max-w-none">

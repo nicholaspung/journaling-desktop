@@ -48,8 +48,6 @@ const QuestionManager: React.FC = () => {
       return;
     }
 
-    console.log(singleQuestion);
-
     try {
       await AddQuestion(singleQuestion);
       setSingleQuestion("");

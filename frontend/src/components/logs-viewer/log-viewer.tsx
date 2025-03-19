@@ -21,6 +21,7 @@ import {
   TabConfig,
 } from "@/types";
 import DataViewer from "./data-viewer";
+import DataExportImport from "./data-export-import";
 
 const LogViewerWithDataViewer: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -74,6 +75,11 @@ const LogViewerWithDataViewer: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle import completion
+  const handleImportComplete = () => {
+    fetchData(); // Refresh all data after import
   };
 
   // Date formatting function
@@ -257,8 +263,6 @@ const LogViewerWithDataViewer: React.FC = () => {
     },
   ];
 
-  console.log(affirmationLogs);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -272,16 +276,22 @@ const LogViewerWithDataViewer: React.FC = () => {
   }
 
   return (
-    <DataViewer
-      tabs={tabs}
-      formatDate={formatDate}
-      defaultTab="questions"
-      enableSorting={true}
-      enableFiltering={true}
-      enablePagination={true}
-      enableExport={true}
-      defaultPageSize={10}
-    />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Database Management</h2>
+        <DataExportImport onImportComplete={handleImportComplete} />
+      </div>
+      <DataViewer
+        tabs={tabs}
+        formatDate={formatDate}
+        defaultTab="questions"
+        enableSorting={true}
+        enableFiltering={true}
+        enablePagination={true}
+        enableExport={true}
+        defaultPageSize={10}
+      />
+    </div>
   );
 };
 
