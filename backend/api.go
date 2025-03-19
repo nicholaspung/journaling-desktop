@@ -24,7 +24,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 
 	// Initialize the database
-	err := database.Initialize("./app.db")
+	err := database.Initialize("./DailyReflection.db")
 	if err != nil {
 		println("Error initializing database:", err.Error())
 	}

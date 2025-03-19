@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGradient)" />
+  
+  <!-- Journal/Book shape -->
+  <rect x="60" y="55" width="80" height="90" rx="4" fill="white" />
+  
+  <!-- Journal binding -->
+  <rect x="95" y="55" width="10" height="90" fill="#f4f4f5" stroke="#e4e4e7" stroke-width="1" />
+  
+  <!-- Journal lines -->
+  <line x1="70" y1="75" x2="90" y2="75" stroke="#94a3b8" stroke-width="2" />
+  <line x1="70" y1="85" x2="90" y2="85" stroke="#94a3b8" stroke-width="2" />
+  <line x1="70" y1="95" x2="90" y2="95" stroke="#94a3b8" stroke-width="2" />
+  <line x1="70" y1="105" x2="90" y2="105" stroke="#94a3b8" stroke-width="2" />
+  <line x1="70" y1="115" x2="90" y2="115" stroke="#94a3b8" stroke-width="2" />
+  
+  <!-- Right page with reflection element (mirror/water surface) -->
+  <rect x="110" y="75" width="20" height="40" fill="#c7d2fe" rx="2" />
+  <path d="M110,85 Q120,80 130,85 T150,85" stroke="#818cf8" stroke-width="1" fill="none" />
+  <path d="M110,90 Q120,85 130,90 T150,90" stroke="#818cf8" stroke-width="1" fill="none" />
+  <path d="M110,95 Q120,90 130,95 T150,95" stroke="#818cf8" stroke-width="1" fill="none" />
+  
+  <!-- Sun/Moon element (for reflection theme) -->
+  <circle cx="120" y="65" r="8" fill="#fde68a" />
+  <circle cx="120" y="65" r="10" fill="none" stroke="#fdba74" stroke-width="1" />
+  <circle cx="120" y="65" r="12" fill="none" stroke="#fdba74" stroke-width="1" stroke-dasharray="2,2" />
+  
+  <!-- Pen/pencil -->
+  <path d="M135,120 L150,105 L155,110 L140,125 Z" fill="#f59e0b" />
+  <line x1="140" y1="125" x2="135" y2="120" stroke="#78350f" stroke-width="1" />
+  <path d="M150,105 L155,100 L160,105 L155,110 Z" fill="#78350f" />
+</svg>

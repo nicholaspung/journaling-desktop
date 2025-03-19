@@ -2,13 +2,20 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import ThemeToggle from "../reusable/theme-toggle";
 import { Calendar, ScrollText } from "lucide-react";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge"; // Import Badge from shadcn/ui
+import { VERSION_NUMBER } from "@/lib/version";
+import Logo from "@/assets/logo.svg";
 
 export default function Header() {
   const navigate = useNavigate();
   return (
     <header className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
-      <Link to="/">
+      <Link to="/" className="flex items-center gap-2">
+        <img src={Logo} alt="Daily Reflection Logo" className="h-16 w-16" />
         <h1 className="text-xl font-bold">Daily Reflection</h1>
+        <Badge variant="secondary" className="text-xs">
+          v{VERSION_NUMBER}
+        </Badge>
       </Link>
       <div className="flex items-center space-x-4">
         <Button
