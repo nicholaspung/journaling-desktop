@@ -20,6 +20,8 @@ import {
   AddQuestion,
   CreateNewAnswer,
   LogAffirmation,
+  GetAllGratitudeEntries,
+  AddGratitudeItem,
 } from "../../../wailsjs/go/backend/App";
 import Papa from "papaparse";
 import { toast } from "sonner";
@@ -48,23 +50,37 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       const answers = (await GetAllAnswers()) || [];
       const affirmations = (await GetAllAffirmations()) || [];
       const affirmationLogs = (await GetAllAffirmationLogs()) || [];
+      const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
 
-      console.log(questions, answers, affirmations, affirmationLogs);
+      // Flatten gratitude entries for export
+      const gratitudeItems: any[] = [];
+      gratitudeEntriesData.forEach((entry) => {
+        entry.items.forEach((item) => {
+          gratitudeItems.push(item);
+        });
+      });
 
-      // Create a zip-like structure (in reality, we'll just create multiple CSV files)
-      // For simplicity, we'll create separate CSV files for each table
+      console.log(
+        questions,
+        answers,
+        affirmations,
+        affirmationLogs,
+        gratitudeItems
+      );
 
       // Convert data to CSV format using PapaParse
       const questionsCSV = Papa.unparse(questions);
       const answersCSV = Papa.unparse(answers);
       const affirmationsCSV = Papa.unparse(affirmations);
       const affirmationLogsCSV = Papa.unparse(affirmationLogs);
+      const gratitudeItemsCSV = Papa.unparse(gratitudeItems);
 
       // Create a virtual link element for each CSV file and trigger download
       downloadCSV(questionsCSV, "questions.csv");
       downloadCSV(answersCSV, "answers.csv");
       downloadCSV(affirmationsCSV, "affirmations.csv");
       downloadCSV(affirmationLogsCSV, "affirmation_logs.csv");
+      downloadCSV(gratitudeItemsCSV, "gratitude_items.csv");
 
       toast.success("All data exported successfully!");
     } catch (error) {
@@ -136,6 +152,7 @@ const DataExportImport: React.FC<ExportImportProps> = ({
         else if (fileName.includes("affirmation_log"))
           tableType = "affirmationLogs";
         else if (fileName.includes("affirmation")) tableType = "affirmations";
+        else if (fileName.includes("gratitude")) tableType = "gratitudeItems";
         else {
           errors.push(
             `Could not determine data type for ${file.name}. Skipping.`
@@ -262,6 +279,23 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       }
     }
 
+    // Validate gratitude items
+    if (data.gratitudeItems) {
+      for (let i = 0; i < data.gratitudeItems.length; i++) {
+        const item = data.gratitudeItems[i];
+        if (!item.content || typeof item.content !== "string") {
+          errors.push(
+            `Gratitude items row ${i + 1}: Missing or invalid 'content' field`
+          );
+        }
+        if (!item.entryDate || typeof item.entryDate !== "string") {
+          errors.push(
+            `Gratitude items row ${i + 1}: Missing or invalid 'entryDate' field`
+          );
+        }
+      }
+    }
+
     return errors;
   };
 
@@ -272,7 +306,8 @@ const DataExportImport: React.FC<ExportImportProps> = ({
       (data.questions?.length || 0) +
       (data.affirmations?.length || 0) +
       (data.answers?.length || 0) +
-      (data.affirmationLogs?.length || 0);
+      (data.affirmationLogs?.length || 0) +
+      (data.gratitudeItems?.length || 0);
 
     let importedCount = 0;
 
@@ -295,6 +330,24 @@ const DataExportImport: React.FC<ExportImportProps> = ({
         setImportProgress(
           progress + Math.floor((importedCount / totalItems) * 50)
         );
+      }
+    }
+
+    // Import gratitude items
+    if (data.gratitudeItems && data.gratitudeItems.length > 0) {
+      for (const item of data.gratitudeItems) {
+        // If we have a custom way to import with date, use that
+        // Otherwise we'll use the default AddGratitudeItem which uses today's date
+        try {
+          await AddGratitudeItem(item.content);
+          importedCount++;
+          setImportProgress(
+            progress + Math.floor((importedCount / totalItems) * 50)
+          );
+        } catch (error) {
+          console.error("Error importing gratitude item:", error);
+          // Continue with other items even if one fails
+        }
       }
     }
 

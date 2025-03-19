@@ -4,12 +4,14 @@ import {
   ChevronRight,
   MessageSquare,
   CheckCircle,
+  Heart,
 } from "lucide-react";
 import {
   GetAllAnswers,
   GetAllAffirmationLogs,
+  GetAllGratitudeEntries,
 } from "../../../wailsjs/go/backend/App";
-import { Answer, AffirmationLog } from "@/types";
+import { Answer, AffirmationLog, GratitudeEntry } from "@/types";
 import {
   Tooltip,
   TooltipContent,
@@ -24,6 +26,9 @@ const ActivityCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [affirmationLogs, setAffirmationLogs] = useState<AffirmationLog[]>([]);
+  const [gratitudeEntries, setGratitudeEntries] = useState<GratitudeEntry[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,12 +41,14 @@ const ActivityCalendar = () => {
     try {
       setLoading(true);
 
-      // Fetch answers and affirmation completions
+      // Fetch answers, affirmation completions, and gratitude entries
       const answersData = (await GetAllAnswers()) || [];
       const affirmationLogsData = (await GetAllAffirmationLogs()) || [];
+      const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
 
       setAnswers(answersData);
       setAffirmationLogs(affirmationLogsData);
+      setGratitudeEntries(gratitudeEntriesData);
     } catch (err) {
       console.error("Error fetching activity data:", err);
       setError("Failed to load activity data");
@@ -81,6 +88,18 @@ const ActivityCalendar = () => {
     });
   };
 
+  // Get array of dates with gratitude entries
+  const getDatesWithGratitude = () => {
+    const dates = new Set<string>();
+
+    // Extract unique dates from gratitude entries
+    gratitudeEntries.forEach((entry) => {
+      dates.add(entry.date);
+    });
+
+    return Array.from(dates);
+  };
+
   // Format a date to YYYY-MM-DD in local timezone
   const formatDateString = (date: Date) => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -112,6 +131,7 @@ const ActivityCalendar = () => {
     // Get dates with activities
     const datesWithAnswers = getDatesWithAnswers();
     const datesWithAffirmations = getDatesWithAffirmations();
+    const datesWithGratitude = getDatesWithGratitude();
 
     // Generate calendar days
     const days = [];
@@ -130,6 +150,7 @@ const ActivityCalendar = () => {
         isCurrentMonth: false,
         hasAnswer: datesWithAnswers.includes(dateStr),
         hasAffirmation: datesWithAffirmations.includes(dateStr),
+        hasGratitude: datesWithGratitude.includes(dateStr),
       });
     }
 
@@ -145,6 +166,7 @@ const ActivityCalendar = () => {
         isCurrentMonth: true,
         hasAnswer: datesWithAnswers.includes(dateStr),
         hasAffirmation: datesWithAffirmations.includes(dateStr),
+        hasGratitude: datesWithGratitude.includes(dateStr),
       });
     }
 
@@ -161,10 +183,17 @@ const ActivityCalendar = () => {
         isCurrentMonth: false,
         hasAnswer: datesWithAnswers.includes(dateStr),
         hasAffirmation: datesWithAffirmations.includes(dateStr),
+        hasGratitude: datesWithGratitude.includes(dateStr),
       });
     }
 
     return days;
+  };
+
+  // Find gratitude items for a specific date
+  const getGratitudeItemsForDate = (dateStr: string) => {
+    const entry = gratitudeEntries.find((entry) => entry.date === dateStr);
+    return entry ? entry.items : [];
   };
 
   // Format month and year for display
@@ -260,6 +289,11 @@ const ActivityCalendar = () => {
                           <CheckCircle size={14} />
                         </div>
                       )}
+                      {day.hasGratitude && (
+                        <div className="text-red-500">
+                          <Heart size={14} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -272,7 +306,7 @@ const ActivityCalendar = () => {
                         day: "numeric",
                       })}
                     </p>
-                    {day.hasAnswer || day.hasAffirmation ? (
+                    {day.hasAnswer || day.hasAffirmation || day.hasGratitude ? (
                       <div className="mt-1">
                         {day.hasAnswer && (
                           <div className="flex items-center text-sm">
@@ -290,6 +324,15 @@ const ActivityCalendar = () => {
                               className="mr-1 text-green-500"
                             />
                             <span>Affirmation completed</span>
+                          </div>
+                        )}
+                        {day.hasGratitude && (
+                          <div className="flex items-center text-sm">
+                            <Heart size={12} className="mr-1 text-red-500" />
+                            <span>
+                              Gratitude entries:{" "}
+                              {getGratitudeItemsForDate(day.dateStr).length}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -314,6 +357,10 @@ const ActivityCalendar = () => {
           <div className="flex items-center">
             <CheckCircle size={14} className="mr-1 text-green-500" />
             <span>Affirmation completed</span>
+          </div>
+          <div className="flex items-center">
+            <Heart size={14} className="mr-1 text-red-500" />
+            <span>Gratitude entries</span>
           </div>
         </div>
       </CardContent>

@@ -3,23 +3,44 @@ import {
   GetAllAnswers,
   GetAllAffirmationLogs,
   GetAffirmationStreak,
+  GetAllGratitudeEntries,
+  GetGratitudeStreak,
 } from "../../../wailsjs/go/backend/App";
-import { Answer, AffirmationLog, ActivityStats } from "@/types";
+import {
+  Answer,
+  AffirmationLog,
+  ActivityStats,
+  GratitudeEntry,
+  GratitudeItem,
+} from "@/types";
 import ActivityCalendar from "./activity-calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, CheckCircle2, LineChart, Award } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  LineChart,
+  Award,
+  Heart,
+  ArrowLeft,
+} from "lucide-react";
 import { getLocalDateString } from "@/lib/utils";
+import { Button } from "../ui/button";
+import DashboardSummaryCard from "../reusable/dashboard-summary-card";
 
 const ActivityDashboard: React.FC = () => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [affirmationLogs, setAffirmationLogs] = useState<AffirmationLog[]>([]);
+  const [gratitudeItems, setGratitudeItems] = useState<GratitudeItem[]>([]);
   const [stats, setStats] = useState<ActivityStats>({
     totalAnswers: 0,
     totalAffirmations: 0,
     totalAnswerDays: 0,
     totalAffirmationDays: 0,
-    currentStreak: 0,
+    totalGratitudeItems: 0,
+    totalGratitudeDays: 0,
+    currentAffirmationStreak: 0,
+    currentGratitudeStreak: 0,
     longestStreak: 0,
     completionRate: 0,
   });
@@ -34,16 +55,31 @@ const ActivityDashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch answers and affirmation logs
+      // Fetch answers, affirmation logs, and gratitude entries
       const answersData = (await GetAllAnswers()) || [];
       const affirmationLogsData = (await GetAllAffirmationLogs()) || [];
-      const currentStreak = (await GetAffirmationStreak()) || 0;
+      const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
+      const affirmationStreak = (await GetAffirmationStreak()) || 0;
+      const gratitudeStreak = (await GetGratitudeStreak()) || 0;
 
       setAnswers(answersData);
       setAffirmationLogs(affirmationLogsData);
 
+      // Flatten gratitude items for easier access
+      const allGratitudeItems = gratitudeEntriesData.flatMap(
+        (entry) => entry.items
+      );
+      setGratitudeItems(allGratitudeItems);
+
       // Calculate statistics
-      calculateStats(answersData, affirmationLogsData, currentStreak);
+      calculateStats(
+        answersData,
+        affirmationLogsData,
+        gratitudeEntriesData,
+        allGratitudeItems,
+        affirmationStreak,
+        gratitudeStreak
+      );
     } catch (err) {
       console.error("Error fetching activity data:", err);
       setError("Failed to load activity data");
@@ -55,7 +91,10 @@ const ActivityDashboard: React.FC = () => {
   const calculateStats = (
     answersData: Answer[],
     affirmationLogsData: AffirmationLog[],
-    currentStreak: number
+    gratitudeEntriesData: GratitudeEntry[],
+    gratitudeItemsData: GratitudeItem[],
+    affirmationStreak: number,
+    gratitudeStreak: number
   ) => {
     // Get unique dates for answers
     const answerDates = new Set(
@@ -71,46 +110,56 @@ const ActivityDashboard: React.FC = () => {
       )
     );
 
-    // Calculate total unique days with answers and affirmations
+    // Get unique dates for gratitude entries
+    const gratitudeDates = new Set(
+      gratitudeEntriesData.map((entry) => entry.date)
+    );
+
+    // Calculate total unique days with answers, affirmations, and gratitude
     const totalAnswerDays = answerDates.size;
     const totalAffirmationDays = affirmationDates.size;
+    const totalGratitudeDays = gratitudeDates.size;
 
-    // Calculate completion rate for the last 30 days
+    // Calculate completion rates for the last 30 days
     const last30Days = new Set();
     const today = new Date();
 
     for (let i = 0; i < 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
-      last30Days.add(getLocalDateString(new Date().toISOString()));
+      last30Days.add(getLocalDateString(date.toISOString()));
     }
 
-    console.log(last30Days);
+    // Count individual completion days
+    let answerCompleteDays = 0;
+    let affirmationCompleteDays = 0;
+    let gratitudeCompleteDays = 0;
 
-    // Count days in the last 30 days where the user did both an affirmation and answered a question
-    let completeDays = 0;
     last30Days.forEach((dateStr) => {
-      if (
-        answerDates.has(dateStr as string) &&
-        affirmationDates.has(dateStr as string)
-      ) {
-        completeDays++;
-      }
+      if (answerDates.has(dateStr as string)) answerCompleteDays++;
+      if (affirmationDates.has(dateStr as string)) affirmationCompleteDays++;
+      if (gratitudeDates.has(dateStr as string)) gratitudeCompleteDays++;
     });
 
-    const completionRate = Math.round((completeDays / 30) * 100);
+    // Calculate overall completion rate (average of all three)
+    const completionRate = Math.round(
+      ((answerCompleteDays + affirmationCompleteDays + gratitudeCompleteDays) /
+        (30 * 3)) *
+        100
+    );
 
-    // Calculate longest streak (simplified version)
-    // Note: For a more accurate streak calculation, you might want to implement
-    // a more sophisticated algorithm or add it to your backend
-    const longestStreak = currentStreak; // Placeholder - ideally calculate this
+    // Determine longest streak (use the max of affirmation and gratitude streaks)
+    const longestStreak = Math.max(affirmationStreak, gratitudeStreak);
 
     setStats({
       totalAnswers: answersData.length,
       totalAffirmations: affirmationLogsData.length,
+      totalGratitudeItems: gratitudeItemsData.length,
       totalAnswerDays,
       totalAffirmationDays,
-      currentStreak,
+      totalGratitudeDays,
+      currentAffirmationStreak: affirmationStreak,
+      currentGratitudeStreak: gratitudeStreak,
       longestStreak,
       completionRate,
     });
@@ -148,6 +197,16 @@ const ActivityDashboard: React.FC = () => {
       .slice(0, 5);
   };
 
+  // Get recent gratitude items
+  const getRecentGratitudeItems = () => {
+    return [...gratitudeItems]
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 5);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -162,89 +221,26 @@ const ActivityDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight">Activity Dashboard</h2>
+      {/* Header with back button and title */}
+      <div className="flex items-center mb-6">
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1 mr-8"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Journal
+          </Button>
+        </div>
 
-      {/* Stats cards */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Answers</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAnswers}</div>
-            <p className="text-xs text-muted-foreground">Questions answered</p>
-          </CardContent>
-        </Card>
+        <div className="flex-1 flex justify-center">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Activity Dashboard
+          </h2>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Days</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAnswerDays}</div>
-            <p className="text-xs text-muted-foreground">Days with answers</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Affirmations
-            </CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAffirmations}</div>
-            <p className="text-xs text-muted-foreground">
-              Completed affirmations
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Affirmation Days
-            </CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalAffirmationDays}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Days with affirmations
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Current Streak
-            </CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.currentStreak}</div>
-            <p className="text-xs text-muted-foreground">Consecutive days</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completion Rate
-            </CardTitle>
-            <LineChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completionRate}%</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
-          </CardContent>
-        </Card>
+        {/* Empty div to maintain balance */}
+        <div className="w-[112px]"></div>
       </div>
 
       {/* Calendar and Recent Activity */}
@@ -253,16 +249,87 @@ const ActivityDashboard: React.FC = () => {
           <ActivityCalendar />
         </div>
 
-        <div className="md:col-span-3">
-          <Card className="h-full">
+        <div className="md:col-span-3 space-y-4">
+          {/* Stats cards */}
+          <div className="grid gap-4 grid-cols-2">
+            <DashboardSummaryCard
+              title="Total Answers"
+              icon={<CheckCircle2 className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalAnswers}
+              description="Questions answered"
+            />
+
+            <DashboardSummaryCard
+              title="Active Days"
+              icon={<CheckCircle2 className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalAnswerDays}
+              description="Days with answers"
+            />
+          </div>
+
+          <div className="grid gap-4 grid-cols-3">
+            <DashboardSummaryCard
+              title="Total Affirmations"
+              icon={<Award className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalAffirmations}
+              description="Completed affirmations"
+            />
+
+            <DashboardSummaryCard
+              title="Total Gratitudes"
+              icon={<Heart className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalGratitudeItems}
+              description="Gratitude entries"
+            />
+
+            <DashboardSummaryCard
+              title="Completion Rate"
+              icon={<LineChart className="h-4 w-4 text-muted-foreground" />}
+              stat={`${stats.completionRate}%`}
+              description="Last 30 days"
+            />
+          </div>
+
+          <div className="grid gap-4 grid-cols-4">
+            <DashboardSummaryCard
+              title="Affirmation Days"
+              icon={<Award className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalAffirmationDays}
+              description="Days with affirmations"
+            />
+
+            <DashboardSummaryCard
+              title="Gratitude Days"
+              icon={<Heart className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.totalGratitudeDays}
+              description="Days with gratitude"
+            />
+
+            <DashboardSummaryCard
+              title="Aff. Streak"
+              icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.currentAffirmationStreak}
+              description="Affirmation days"
+            />
+
+            <DashboardSummaryCard
+              title="Grat. Streak"
+              icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+              stat={stats.currentGratitudeStreak}
+              description="Gratitude days"
+            />
+          </div>
+
+          <Card className="mb-2">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="answers">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="answers">Answers</TabsTrigger>
                   <TabsTrigger value="affirmations">Affirmations</TabsTrigger>
+                  <TabsTrigger value="gratitude">Gratitude</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="answers" className="space-y-4 mt-4">
@@ -301,6 +368,27 @@ const ActivityDashboard: React.FC = () => {
                   ) : (
                     <p className="text-muted-foreground">
                       No recent affirmations found.
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="gratitude" className="space-y-4 mt-4">
+                  {getRecentGratitudeItems().length > 0 ? (
+                    <div className="space-y-4">
+                      {getRecentGratitudeItems().map((item) => (
+                        <div key={item.id} className="border-b pb-2">
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(item.entryDate)}
+                          </p>
+                          <p className="font-medium line-clamp-2">
+                            {item.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No recent gratitude entries found.
                     </p>
                   )}
                 </TabsContent>

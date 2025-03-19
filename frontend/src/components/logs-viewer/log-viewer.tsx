@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { CalendarCheck, MessageSquare, CheckCircle, Award } from "lucide-react";
+import {
+  CalendarCheck,
+  MessageSquare,
+  CheckCircle,
+  Award,
+  Heart,
+} from "lucide-react";
 import {
   GetAllAffirmationLogs,
   GetAllAffirmations,
@@ -12,6 +18,9 @@ import {
   UpdateAffirmation,
   DeleteAffirmation,
   DeleteAffirmationLog,
+  GetAllGratitudeEntries,
+  UpdateGratitudeItem,
+  DeleteGratitudeItem,
 } from "../../../wailsjs/go/backend/App";
 import {
   Affirmation,
@@ -19,6 +28,7 @@ import {
   JoinedAnswer,
   Question,
   TabConfig,
+  GratitudeItem,
 } from "@/types";
 import DataViewer from "./data-viewer";
 import DataExportImport from "./data-export-import";
@@ -30,6 +40,7 @@ const LogViewerWithDataViewer: React.FC = () => {
   const [affirmationLogs, setAffirmationLogs] = useState<
     JoinedAffirmationLog[]
   >([]);
+  const [gratitudeItems, setGratitudeItems] = useState<GratitudeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +57,17 @@ const LogViewerWithDataViewer: React.FC = () => {
       const answersData = (await GetAllAnswers()) || [];
       const affirmationsData = (await GetAllAffirmations()) || [];
       const affirmationLogsData = (await GetAllAffirmationLogs()) || [];
+
+      // Get all gratitude entries
+      const gratitudeEntriesData = (await GetAllGratitudeEntries()) || [];
+
+      // Flatten the gratitude entries into a single array of items
+      const flattenedGratitudeItems: GratitudeItem[] = [];
+      gratitudeEntriesData.forEach((entry) => {
+        entry.items.forEach((item) => {
+          flattenedGratitudeItems.push(item);
+        });
+      });
 
       // Create a map for quick lookups
       const questionsMap = new Map(questionsData.map((q) => [q.id, q]));
@@ -69,6 +91,7 @@ const LogViewerWithDataViewer: React.FC = () => {
       setAnswers(joinedAnswers);
       setAffirmations(affirmationsData);
       setAffirmationLogs(joinedAffirmationLogs);
+      setGratitudeItems(flattenedGratitudeItems);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load data. Please try again.");
@@ -260,6 +283,45 @@ const LogViewerWithDataViewer: React.FC = () => {
         await DeleteAffirmationLog(id);
         setAffirmationLogs(affirmationLogs.filter((log) => log.id !== id));
       },
+    },
+    {
+      id: "gratitude-items",
+      label: "Gratitude Items",
+      icon: Heart,
+      data: gratitudeItems,
+      columns: [
+        { key: "id", header: "ID", filterable: false },
+        { key: "content", header: "Gratitude Content", width: "w-full" },
+        {
+          key: "entryDate",
+          header: "Entry Date",
+          filterable: true,
+          renderCell: (item) => <span>{item.entryDate}</span>,
+        },
+        { key: "createdAt", header: "Created At", filterable: false },
+      ],
+      idField: "id",
+      contentField: "content",
+      canEdit: true,
+      canDelete: true,
+      emptyMessage: "No gratitude items found",
+      onUpdate: async (id, content) => {
+        await UpdateGratitudeItem(id, content);
+      },
+      onDelete: async (id) => {
+        await DeleteGratitudeItem(id);
+        setGratitudeItems(gratitudeItems.filter((item) => item.id !== id));
+      },
+      additionalUpdates: (id, content) => {
+        // Update local state
+        setGratitudeItems(
+          gratitudeItems.map((item) =>
+            item.id === id ? { ...item, content } : item
+          )
+        );
+      },
+      defaultSortColumn: "entryDate",
+      defaultSortDirection: "desc",
     },
   ];
 

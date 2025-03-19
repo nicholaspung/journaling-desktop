@@ -63,6 +63,18 @@ func Initialize(dbPath string) error {
 		completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (affirmation_id) REFERENCES affirmations(id)
 	)`)
+	if err != nil {
+		return err
+	}
+
+	// Create gratitude items table
+	_, err = DB.Exec(`
+	CREATE TABLE IF NOT EXISTS gratitude_items (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		content TEXT NOT NULL,
+		entry_date TEXT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	)`)
 
 	return err
 }

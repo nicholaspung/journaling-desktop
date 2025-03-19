@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import DataTable from "./data-table";
 import EditDialog from "./edit-dialog";
-import DeleteDialog from "./delete-dialog";
+import DeleteDialog from "../reusable/delete-dialog";
 import { toast } from "sonner";
 import { TabConfig } from "@/types";
 
@@ -208,7 +208,7 @@ const DataViewer: React.FC<DataViewerProps> = ({
             defaultValue={defaultTab || processedTabs[0]?.id}
             className="w-full"
           >
-            <TabsList className={`grid grid-cols-4 mb-4`}>
+            <TabsList className={`grid grid-cols-5 mb-4`}>
               {processedTabs.map((tab) => (
                 <TabsTrigger
                   key={tab.id}

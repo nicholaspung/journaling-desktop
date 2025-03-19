@@ -90,13 +90,16 @@ export interface CalendarDay {
   hasAffirmation: boolean;
 }
 
-// Stats and aggregation types
+// Updated ActivityStats interface
 export interface ActivityStats {
   totalAnswers: number;
   totalAffirmations: number;
+  totalGratitudeItems?: number; // New property
   totalAnswerDays: number;
   totalAffirmationDays: number;
-  currentStreak: number;
+  totalGratitudeDays?: number; // New property
+  currentAffirmationStreak?: number; // Renamed from currentStreak
+  currentGratitudeStreak?: number; // New property
   longestStreak: number;
   completionRate: number;
 }
@@ -109,4 +112,17 @@ export interface ExportData {
   affirmationLogs: AffirmationLog[];
   exportDate: string;
   version: string;
+}
+
+// Define types for our gratitude entries
+export interface GratitudeItem {
+  id: number;
+  content: string;
+  entryDate: string;
+  createdAt: string;
+}
+
+export interface GratitudeEntry {
+  date: string;
+  items: GratitudeItem[];
 }

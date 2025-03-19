@@ -163,3 +163,55 @@ func (a *App) GetRecentAnswers(daysRange int) ([]models.Answer, error) {
 func (a *App) GetQuestionById(id int64) (*models.Question, error) {
 	return models.GetQuestionById(id)
 }
+
+// Gratitude Journal API Methods
+
+// AddGratitudeItem adds a new gratitude item for today
+func (a *App) AddGratitudeItem(content string) (*models.GratitudeItem, error) {
+	return models.AddGratitudeItem(content)
+}
+
+// GetTodayGratitudeItems gets all gratitude items for today
+func (a *App) GetTodayGratitudeItems() ([]models.GratitudeItem, error) {
+	return models.GetTodayGratitudeItems()
+}
+
+// GetGratitudeItemsByDate gets all gratitude items for a specific date
+func (a *App) GetGratitudeItemsByDate(date string) ([]models.GratitudeItem, error) {
+	return models.GetGratitudeItemsByDate(date)
+}
+
+// HasTodayGratitudeEntries checks if there are any entries for today
+func (a *App) HasTodayGratitudeEntries() (bool, error) {
+	return models.HasTodayGratitudeEntries()
+}
+
+// CountTodayGratitudeEntries counts the number of entries for today
+func (a *App) CountTodayGratitudeEntries() (int, error) {
+	return models.CountTodayGratitudeEntries()
+}
+
+// GetAllGratitudeEntries gets all gratitude entries grouped by date
+func (a *App) GetAllGratitudeEntries() ([]models.GratitudeEntry, error) {
+	return models.GetAllGratitudeEntries()
+}
+
+// UpdateGratitudeItem updates a gratitude item
+func (a *App) UpdateGratitudeItem(id int64, content string) error {
+	return models.UpdateGratitudeItem(id, content)
+}
+
+// DeleteGratitudeItem deletes a gratitude item
+func (a *App) DeleteGratitudeItem(id int64) error {
+	return models.DeleteGratitudeItem(id)
+}
+
+// GetLastNDaysWithGratitude gets entries for the last n days
+func (a *App) GetLastNDaysWithGratitude(n int) ([]models.GratitudeEntry, error) {
+	return models.GetLastNDaysWithGratitude(n)
+}
+
+// GetGratitudeStreak calculates the current streak of consecutive days with gratitude entries
+func (a *App) GetGratitudeStreak() (int, error) {
+	return models.GetGratitudeStreak()
+}
