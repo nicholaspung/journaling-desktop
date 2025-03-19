@@ -2,7 +2,7 @@
 package models
 
 import (
-	"database/sql"
+	"fmt"
 	"time"
 
 	"myproject/backend/database"
@@ -107,29 +107,45 @@ func GetAllAnswers() ([]Answer, error) {
 	return answers, nil
 }
 
-// GetTodaysAnswer retrieves the answer created today, if any
-func GetTodaysAnswer() (*Answer, error) {
-	// This is the critical fix - we keep date calculation entirely in SQLite
-	// using 'localtime' to ensure proper timezone handling
+// GetRecentAnswers retrieves answers from the last few days
+func GetRecentAnswers(daysRange int) ([]Answer, error) {
+	// Get answers from the past daysRange days
+	// Using string formatting is safe here since daysRange is an integer
+	query := fmt.Sprintf(`
+		SELECT id, question_id, content, created_at, updated_at 
+		FROM answers 
+		WHERE created_at >= datetime('now', '-%d days')
+		ORDER BY created_at DESC`, daysRange)
 
-	var answer Answer
-	err := database.DB.QueryRow(`
-		SELECT a.id, a.question_id, a.content, a.created_at, a.updated_at 
-		FROM answers a
-		WHERE date(a.created_at, 'localtime') = date('now', 'localtime')
-		ORDER BY a.created_at DESC
-		LIMIT 1`).Scan(
-		&answer.ID, &answer.QuestionID, &answer.Content, &answer.CreatedAt, &answer.UpdatedAt)
+	println("Executing query for recent answers with range:", daysRange, "days")
+	println("Query:", query)
 
+	rows, err := database.DB.Query(query)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			// No answer found for today
-			return nil, nil
+		println("Error querying recent answers:", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var answers []Answer
+	for rows.Next() {
+		var a Answer
+		err := rows.Scan(&a.ID, &a.QuestionID, &a.Content, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			println("Error scanning answer row:", err.Error())
+			return nil, err
 		}
+		answers = append(answers, a)
+	}
+
+	// Check for errors during iteration
+	if err = rows.Err(); err != nil {
+		println("Error iterating through answer rows:", err.Error())
 		return nil, err
 	}
 
-	return &answer, nil
+	println("Successfully retrieved", len(answers), "recent answers")
+	return answers, nil
 }
 
 // GetQuestionById retrieves a specific question by its ID
@@ -147,78 +163,4 @@ func GetQuestionById(id int64) (*Question, error) {
 	}
 
 	return &question, nil
-}
-
-// GetTodaysAnsweredQuestion retrieves both today's answer and its associated question
-// Returns a struct with answer and question fields for better TypeScript integration
-type TodaysAnsweredQuestion struct {
-	Answer   *Answer   `json:"answer"`
-	Question *Question `json:"question"`
-}
-
-func GetTodaysAnsweredQuestion() (*TodaysAnsweredQuestion, error) {
-	// Get today's answer
-	answer, err := GetTodaysAnswer()
-	if err != nil {
-		return nil, err
-	}
-
-	// If no answer found for today, return nil values
-	if answer == nil {
-		return &TodaysAnsweredQuestion{
-			Answer:   nil,
-			Question: nil,
-		}, nil
-	}
-
-	// Get the question that was answered
-	question, err := GetQuestionById(answer.QuestionID)
-	if err != nil {
-		return &TodaysAnsweredQuestion{
-			Answer:   answer,
-			Question: nil,
-		}, nil
-	}
-
-	return &TodaysAnsweredQuestion{
-		Answer:   answer,
-		Question: question,
-	}, nil
-}
-
-// GetAnswersByDate retrieves all answers for a specific day (for debugging)
-// The dateStr should be in local timezone YYYY-MM-DD format
-func GetAnswersByDate(dateStr string) ([]Answer, error) {
-	rows, err := database.DB.Query(`
-		SELECT id, question_id, content, created_at, updated_at
-		FROM answers
-		WHERE date(created_at, 'localtime') = ?
-		ORDER BY created_at DESC`, dateStr)
-
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var answers []Answer
-	for rows.Next() {
-		var a Answer
-		err := rows.Scan(&a.ID, &a.QuestionID, &a.Content, &a.CreatedAt, &a.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-		answers = append(answers, a)
-	}
-
-	return answers, nil
-}
-
-// GetTodayDateStr returns today's date as a YYYY-MM-DD string in local timezone
-func GetTodayDateStr() (string, error) {
-	var dateStr string
-	err := database.DB.QueryRow(`SELECT date('now', 'localtime')`).Scan(&dateStr)
-	if err != nil {
-		return "", err
-	}
-	return dateStr, nil
 }

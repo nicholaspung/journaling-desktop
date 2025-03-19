@@ -28,17 +28,11 @@ export function GetAllQuestions():Promise<Array<models.Question>>;
 
 export function GetAnswerHistoryByQuestionID(arg1:number):Promise<Array<models.AnswerHistory>>;
 
-export function GetAnswersByDate(arg1:string):Promise<Array<models.Answer>>;
-
 export function GetQuestionById(arg1:number):Promise<models.Question>;
 
 export function GetRandomQuestion():Promise<models.Question>;
 
-export function GetTodayDateStr():Promise<string>;
-
-export function GetTodaysAnswer():Promise<models.Answer>;
-
-export function GetTodaysAnsweredQuestion():Promise<models.TodaysAnsweredQuestion>;
+export function GetRecentAnswers(arg1:number):Promise<Array<models.Answer>>;
 
 export function LogAffirmation(arg1:number):Promise<void>;
 

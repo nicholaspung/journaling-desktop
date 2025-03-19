@@ -150,27 +150,12 @@ func (a *App) DeleteAffirmationLog(id int64) error {
 	return models.DeleteAffirmationLog(id)
 }
 
-// GetTodaysAnswer retrieves the answer created today, if any
-func (a *App) GetTodaysAnswer() (*models.Answer, error) {
-	return models.GetTodaysAnswer()
+// GetRecentAnswers retrieves answers from the last few days
+func (a *App) GetRecentAnswers(daysRange int) ([]models.Answer, error) {
+	return models.GetRecentAnswers(daysRange)
 }
 
 // GetQuestionById retrieves a specific question by its ID
 func (a *App) GetQuestionById(id int64) (*models.Question, error) {
 	return models.GetQuestionById(id)
-}
-
-// GetTodaysAnsweredQuestion retrieves both today's answer and its associated question
-func (a *App) GetTodaysAnsweredQuestion() (*models.TodaysAnsweredQuestion, error) {
-	return models.GetTodaysAnsweredQuestion()
-}
-
-// GetAnswersByDate retrieves all answers for a specific date (for debugging)
-func (a *App) GetAnswersByDate(dateStr string) ([]models.Answer, error) {
-	return models.GetAnswersByDate(dateStr)
-}
-
-// GetTodayDateStr returns today's date as a YYYY-MM-DD string in local timezone
-func (a *App) GetTodayDateStr() (string, error) {
-	return models.GetTodayDateStr()
 }

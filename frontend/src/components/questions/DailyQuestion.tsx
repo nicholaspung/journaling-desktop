@@ -1,15 +1,12 @@
-// src/components/DailyQuestion.tsx
 import { useState, useEffect } from "react";
 import { Answer, Question } from "../../types";
 import {
   GetRandomQuestion,
   CreateNewAnswer,
   GetAnswerHistoryByQuestionID,
+  GetRecentAnswers,
+  GetQuestionById,
   UpdateAnswer,
-  GetAnswersByDate,
-  GetTodaysAnswer,
-  GetTodayDateStr,
-  GetTodaysAnsweredQuestion,
 } from "../../../wailsjs/go/backend/App";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,9 +18,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, CalendarDays, Edit2, AlertCircle } from "lucide-react";
+import { RefreshCw, CalendarDays, Edit2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import WysiwygMarkdownEditor from "./wysiwyg-markdown-editor";
+import { toast } from "sonner";
 
 export default function DailyQuestion() {
   const [question, setQuestion] = useState<Question | null>(null);
@@ -33,81 +31,62 @@ export default function DailyQuestion() {
   const [isLoading, setIsLoading] = useState(true);
   const [answerHistory, setAnswerHistory] = useState<Answer[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [todaysAnswer, setTodaysAnswer] = useState<Answer | null>(null);
   const [answeredToday, setAnsweredToday] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>("");
 
   useEffect(() => {
     checkTodaysAnswer();
   }, []);
 
-  // Get debug information about today's date and answers
-  async function getDebugInfo() {
-    try {
-      // Get SQLite's version of today's date to ensure consistency
-      const sqliteToday = await GetTodayDateStr();
+  // Check if the date is today
+  const isDateToday = (date: Date): boolean => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
 
-      // Try to get answers for today based on SQLite's date
-      const todayAnswers = await GetAnswersByDate(sqliteToday);
-
-      // Get today's answer using our dedicated endpoint
-      const todayAnswer = await GetTodaysAnswer();
-
-      // Build debug info string
-      let info = `Debug Info:\n`;
-      info += `Current Date (JS): ${new Date().toString()}\n`;
-      info += `Today's Date (YYYY-MM-DD from JS): ${new Date().toISOString().split("T")[0]}\n`;
-      info += `Today's Date (Local from JS): ${new Date().toLocaleDateString()}\n`;
-      info += `Today's Date (from SQLite): ${sqliteToday}\n`;
-      info += `Found ${todayAnswers ? todayAnswers.length : 0} answers with SQLite date = "${sqliteToday}"\n`;
-      info += `GetTodaysAnswer returned: ${todayAnswer ? "Answer ID: " + todayAnswer.id : "null"}\n`;
-
-      if (todayAnswers && todayAnswers.length > 0) {
-        todayAnswers.forEach((answer, i) => {
-          info += `\nAnswer ${i + 1}:\n`;
-          info += `  ID: ${answer.id}\n`;
-          info += `  Question ID: ${answer.questionId}\n`;
-          info += `  Created: ${new Date(answer.createdAt).toString()}\n`;
-          info += `  Created (ISO): ${answer.createdAt}\n`;
-          info += `  Created Date (local): ${new Date(answer.createdAt).toLocaleDateString()}\n`;
-        });
-      }
-
-      setDebugInfo(info);
-    } catch (error) {
-      console.error("Error getting debug info:", error);
-      setDebugInfo(`Error getting debug info: ${error}`);
-    }
-  }
-
-  // Check if a question was already answered today
+  // Check if a question was already answered today (client-side approach)
   async function checkTodaysAnswer() {
     setIsLoading(true);
     try {
-      // First, get debug info
-      await getDebugInfo();
+      // Get answers from the last 7 days to be safe
+      const recentAnswers = await GetRecentAnswers(7);
 
-      // Use our backend endpoint to get today's answer and question
-      const { answer, question } = await GetTodaysAnsweredQuestion();
+      // Filter for today's answers by comparing the date parts
+      const todayAnswers = recentAnswers.filter((answer) => {
+        const answerDate = new Date(answer.createdAt);
+        const isToday = isDateToday(answerDate);
 
-      console.log("GetTodaysAnsweredQuestion result:", {
-        answer,
-        question,
+        return isToday;
       });
 
-      if (answer && question) {
+      if (todayAnswers.length > 0) {
         // User has already answered a question today
-        console.log("Found today's answer:", answer);
-        console.log("Found today's question:", question);
+        // Get the most recent answer from today
+        const todayAnswer = todayAnswers[0];
+        console.log("Found today's answer:", todayAnswer);
 
-        setTodaysAnswer(answer);
-        setQuestion(question);
-        setAnsweredToday(true);
-        setContent(answer.content);
+        // Fetch the associated question
+        const todayQuestion = await GetQuestionById(todayAnswer.questionId);
+        console.log("Found today's question:", todayQuestion);
 
-        // Get the answer history for this question
-        await fetchAnswerHistory(question.id);
+        if (todayQuestion) {
+          setTodaysAnswer(todayAnswer);
+          setQuestion(todayQuestion);
+          setAnsweredToday(true);
+          setContent(todayAnswer.content);
+
+          // Get the answer history for this question
+          await fetchAnswerHistory(todayQuestion.id);
+        } else {
+          // Fallback to random question if we can't find today's question
+          setAnsweredToday(false);
+          setIsEditing(true);
+          await fetchRandomQuestion();
+        }
       } else {
         // User hasn't answered a question today
         console.log("No answer found for today, fetching random question");
@@ -172,18 +151,13 @@ export default function DailyQuestion() {
       setTodaysAnswer(savedAnswer);
 
       // Show success message
-      setSuccessMessage("Your answer has been saved!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      toast.success("Your answer has been saved!");
 
-      // Refresh the history
-      if (question.id) {
-        fetchAnswerHistory(question.id);
-      }
-
-      // Get updated debug info
-      await getDebugInfo();
+      // Refresh everything to ensure we have the latest data
+      await checkTodaysAnswer();
     } catch (error) {
       console.error("Error saving answer:", error);
+      toast.error("Error saving answer. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -200,22 +174,13 @@ export default function DailyQuestion() {
       setIsEditing(false);
 
       // Show success message
-      setSuccessMessage("Your answer has been updated!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      toast.success("Your answer has been updated!");
 
-      // Refresh the history
-      if (question.id) {
-        fetchAnswerHistory(question.id);
-
-        // Update today's answer with new content
-        setTodaysAnswer({
-          ...todaysAnswer,
-          content: content,
-          updatedAt: new Date().toISOString(),
-        });
-      }
+      // Refresh everything to ensure we have the latest data
+      await checkTodaysAnswer();
     } catch (error) {
       console.error("Error updating answer:", error);
+      toast.error("Error updating answer. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -242,10 +207,7 @@ export default function DailyQuestion() {
   // Determine if the answer was created today
   const isToday = (dateString: string) => {
     try {
-      // Compare using the local date string format
-      const answerDate = new Date(dateString).toLocaleDateString();
-      const todayDate = new Date().toLocaleDateString();
-      return answerDate === todayDate;
+      return isDateToday(new Date(dateString));
     } catch (err) {
       console.error("Error in isToday function:", err);
       return false;
@@ -305,8 +267,12 @@ export default function DailyQuestion() {
         <Tabs defaultValue="write" className="w-full">
           <CardContent>
             <div className="text-xl font-medium mb-4">{question?.content}</div>
+            <p className="font-light mb-4">
+              Take a moment to reflect on this question and write your thoughts
+              below.
+            </p>
 
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="write">
                 {answeredToday ? "Today's Answer" : "Write"}
               </TabsTrigger>
@@ -314,7 +280,6 @@ export default function DailyQuestion() {
                 History{" "}
                 {answerHistory.length > 0 && `(${answerHistory.length})`}
               </TabsTrigger>
-              <TabsTrigger value="debug">Debug Info</TabsTrigger>
             </TabsList>
 
             <TabsContent value="write">
@@ -386,35 +351,9 @@ export default function DailyQuestion() {
                 </div>
               )}
             </TabsContent>
-
-            <TabsContent value="debug">
-              <div className="mt-2 border rounded-md p-4 bg-slate-50 dark:bg-slate-900">
-                <div className="flex items-center gap-2 mb-4">
-                  <AlertCircle size={16} className="text-amber-500" />
-                  <span className="font-medium">Debugging Information</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={getDebugInfo}
-                    className="ml-auto"
-                  >
-                    Refresh Debug Info
-                  </Button>
-                </div>
-                <pre className="whitespace-pre-wrap text-xs overflow-auto max-h-64">
-                  {debugInfo || "No debug information available"}
-                </pre>
-              </div>
-            </TabsContent>
           </CardContent>
 
           <CardFooter className="flex justify-between">
-            <div>
-              {successMessage && (
-                <p className="text-green-500">{successMessage}</p>
-              )}
-            </div>
-
             {isEditing && (
               <div className="flex space-x-2">
                 <Button
