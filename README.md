@@ -1,15 +1,24 @@
-# Project management
+# Journaling Desktop
 
-## TODOS
+- Desktop application was created with a LOT of help from Claude 3.7 Sonnet. Some creative decisions were made by me, a lot were made by Claude 3.7 Sonnet.
 
-- Figure out if Claude can help me change the complete styling of the shadcn components to look a little nicer
+  - Total time it took to create a satisfactory v0.0.1 was 12 hrs 43 mins
+  - Spent 3 days consecutively to create application with a lot of breaks in between
+
+## Project management
+
+### TODOS
+
+- Figure out if Claude can help me change the complete styling of the shadcn components to look a little nicer (to match logo color scheme would be nice)
 - See if there's a way to generate a "SDK" for the Wails bindings after they are created
 - See if there's a way to generate types from the Go backend models in Typescript
 - Double check if the "Import all" button works
+- Figure out how to distribute built objects on a website
+- Add GitHub Actions workflow to build into Windows/Mac/Linux
 
-## IN PROGRESS
+### IN PROGRESS
 
-## DONE
+### DONE
 
 - Change questions so that if I answer a question, it shows that question and answer, not another random question [DONE 2025-03-18]
 - Disable "New question" button if I already answered for the day [DONE 2025-03-18]
@@ -24,6 +33,6 @@
 - Add some sample affirmations that help with self worth tied to action and improvement, as well as affirmations that ties self worth as is [DONE 2025-03-19]
 - Add more questions to load up in the beginning [DONE 2025-03-19]
 
-## GAVE UP
+### GAVE UP
 
 - See if there's a way to choose the database it loads
