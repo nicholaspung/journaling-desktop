@@ -138,10 +138,15 @@ jobs:
           if [ -n "$binaries" ]; then
             for binary in $binaries; do
               echo "Found binary: $binary"
+              # Copy instead of rename to maintain the original
               cp "$binary" "DailyReflection_${{ matrix.artifact_name }}"
               chmod +x "DailyReflection_${{ matrix.artifact_name }}"
+              # We'll only process the first binary found
               break
             done
+            # Create a tar.gz archive for better distribution
+            tar -czf "DailyReflection_${{ matrix.artifact_name }}.tar.gz" "DailyReflection_${{ matrix.artifact_name }}"
+            echo "Contents of build/bin directory after tar creation:"
             ls -la
           else
             echo "No executable binaries found!"
@@ -196,20 +201,33 @@ jobs:
         run: |
           mkdir -p release_files
 
+          echo "Debug - listing artifact directories:"
+          find artifacts -type d -maxdepth 1
+
           # Windows executables
           find artifacts -name "*.exe" -exec cp {} release_files/ \;
 
           # macOS zip files
           find artifacts -name "*.zip" -exec cp {} release_files/ \;
 
-          # Linux executables - make sure to get those without extensions
-          find artifacts/DailyReflection_linux_amd64 -type f -executable -not -path "*/\.*" | xargs -I{} cp {} release_files/
+          # Linux executables and tar.gz files
+          echo "Looking for Linux tar.gz files:"
+          find artifacts -name "*.tar.gz" -exec cp {} release_files/ \;
 
-          # If there's a Linux executable, add .tar.gz for better distribution
-          if [ -f "release_files/DailyReflection_linux_amd64" ]; then
-            cd release_files
-            tar -czf DailyReflection_linux_amd64.tar.gz DailyReflection_linux_amd64
-            cd ..
+          # Fallback - direct copy of Linux executables if tar.gz not found
+          if [ ! -f "release_files/DailyReflection_linux_amd64.tar.gz" ]; then
+            echo "No tar.gz found, copying Linux executable directly:"
+            cp artifacts/DailyReflection_linux_amd64/DailyReflection_linux_amd64 release_files/ || \
+            cp artifacts/DailyReflection_linux_amd64/DailyReflection release_files/DailyReflection_linux_amd64 || \
+            echo "Failed to copy Linux executable"
+            
+            # Create tar.gz if executable was copied successfully
+            if [ -f "release_files/DailyReflection_linux_amd64" ]; then
+              echo "Creating tar.gz from copied executable:"
+              cd release_files
+              tar -czf "DailyReflection_linux_amd64.tar.gz" "DailyReflection_linux_amd64"
+              cd ..
+            fi
           fi
 
           echo "Contents of release_files directory:"
@@ -220,8 +238,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: release_files/*
-          generate_release_notes: false
-          draft: true
+          generate_release_notes: true
+          draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
