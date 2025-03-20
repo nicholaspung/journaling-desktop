@@ -4,6 +4,7 @@
 
   - Total time it took to create a satisfactory v0.0.1 was 12 hrs 43 mins
   - Spent 3 days consecutively to create application with a lot of breaks in between
+  - It took 55 mins + xxx in order to get the application to release probably on GitHub Releases
 
 ## Project management
 
@@ -15,6 +16,7 @@
 - Double check if the "Import all" button works
 - Figure out how to distribute built objects on a website
 - Add GitHub Actions workflow to build into Windows/Mac/Linux
+- To figure out how to push updates to clients without asking them to download a new application
 
 ### IN PROGRESS
 
@@ -36,3 +38,4 @@
 ### GAVE UP
 
 - See if there's a way to choose the database it loads
+- Is there a way to bundle the SQLite database in the application, rather than it having 2 files in order to work, i.e. application and database (thought PocketBase did it, but I remembered incorrectly)
